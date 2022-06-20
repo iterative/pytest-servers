@@ -1,0 +1,30 @@
+{
+  "template": "https://github.com/iterative/py-template",
+  "commit": "f8dfd9b9f92abf2c1061d34399d7215df09184ca",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "project_name": "pytest-servers",
+      "package_name": "pytest_servers",
+      "friendly_name": "pytest servers",
+      "author": "Iterative",
+      "email": "support@dvc.org",
+      "github_user": "iterative",
+      "version": "0.0.0",
+      "copyright_year": "2022",
+      "license": "Apache-2.0",
+      "short_description": "pytest-servers",
+      "development_status": "Development Status :: 1 - Planning",
+      "_copy_without_render": [
+        ".github/workflows/release.yaml",
+        ".github/workflows/tests.yaml",
+        ".github/workflows/update-template.yaml"
+      ],
+      "_template": "https://github.com/iterative/py-template"
+    }
+  },
+  "directory": null,
+  "skip": [
+    ".git"
+  ]
+}
