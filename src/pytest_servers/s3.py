@@ -17,7 +17,7 @@ class MockedS3Server:
         try:
             # should fail since we didn't start server yet
             r = requests.get(self.endpoint_url)
-        except:  # noqa: E722, B001
+        except:  # noqa: E722, B001 # pylint: disable=bare-except
             pass
         else:
             if r.ok:

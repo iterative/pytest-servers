@@ -11,4 +11,4 @@ class LocalPath(type(pathlib.Path())):  # type: ignore[misc]
 
     @property
     def fs(self):
-        return self._accessor._fs
+        return self._accessor._fs  # pylint: disable=no-member,protected-access
