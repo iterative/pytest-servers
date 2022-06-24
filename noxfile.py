@@ -10,7 +10,7 @@ nox.options.sessions = "lint", "tests"
 
 @nox.session(python=["3.8", "3.9", "3.10", "3.11", "pypy-3.8", "pypy-3.9"])
 def tests(session: nox.Session) -> None:
-    session.install(".[tests]")
+    session.install(".[tests,all]")
     session.run(
         "pytest",
         "--cov",
@@ -23,7 +23,7 @@ def tests(session: nox.Session) -> None:
 @nox.session
 def lint(session: nox.Session) -> None:
     session.install("pre-commit")
-    session.install("-e", ".[dev]")
+    session.install("-e", ".[dev,all]")
 
     args = *(session.posargs or ("--show-diff-on-failure",)), "--all-files"
     session.run("pre-commit", "run", *args)
@@ -58,4 +58,6 @@ def dev(session: nox.Session) -> None:
     session.run("virtualenv", venv_dir, silent=True)
 
     python = os.path.join(venv_dir, "bin/python")
-    session.run(python, "-m", "pip", "install", "-e", ".[dev]", external=True)
+    session.run(
+        python, "-m", "pip", "install", "-e", ".[all,dev]", external=True
+    )
