@@ -17,7 +17,13 @@ class TestFactory:
         assert s3_path.exists()
         assert list(s3_path.iterdir()) == []
 
-    @pytest.mark.parametrize("fs", ["local", "s3"])
+    def test_azure_path(self, tmp_upath_factory):
+        azure_path = tmp_upath_factory.mktemp("azure")
+        assert isinstance(azure_path, upath.implementations.cloud.AzurePath)
+        assert azure_path.exists()
+        assert list(azure_path.iterdir()) == []
+
+    @pytest.mark.parametrize("fs", ["local", "s3", "azure"])
     def test_multiple_paths(self, tmp_upath_factory, fs):
         path_1 = tmp_upath_factory.mktemp(fs)
         path_2 = tmp_upath_factory.mktemp(fs)

@@ -3,9 +3,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from .azure import azurite  # noqa: F401
 from .factory import TempUPathFactory
 from .s3 import MockedS3Server, s3_fake_creds_file, s3_server  # noqa: F401
-from .utils import monkeypatch_session  # noqa: F401
+from .utils import docker_client, monkeypatch_session  # noqa: F401
 
 if TYPE_CHECKING:
     from pytest import FixtureRequest
@@ -17,13 +18,12 @@ def aws_region_name():
 
 
 @pytest.fixture(scope="session")
-def tmp_upath_factory(
-    request: "FixtureRequest",
-    s3_server,
-):
+def tmp_upath_factory(request: "FixtureRequest", s3_server, azurite):
     """Return a TempUPathFactory instance for the test session."""
     yield TempUPathFactory.from_config(
-        request.config, s3_endpoint_url=s3_server.endpoint_url
+        request.config,
+        s3_endpoint_url=s3_server.endpoint_url,
+        azure_connection_string=azurite,
     )
 
 
@@ -42,6 +42,12 @@ def local_path(tmp_upath_factory, monkeypatch):
 
 
 @pytest.fixture
+def azure_path(tmp_upath_factory):
+    """Return a temporary path."""
+    yield tmp_upath_factory.mktemp("azure")
+
+
+@pytest.fixture
 def tmp_upath(
     request: "FixtureRequest",
     tmp_upath_factory,
@@ -49,7 +55,7 @@ def tmp_upath(
     """Temporary directory on different filesystems.
 
     Usage:
-    >>> @pytest.mark.parametrize("tmp_upath", ["local", "s3"], indirect=True])
+    >>> @pytest.mark.parametrize("tmp_upath", ["local", "s3", "azure"], indirect=True]) # noqa: E501
     >>> def test_something(tmp_upath):
     >>>     pass
     """
@@ -57,10 +63,9 @@ def tmp_upath(
     if param == "local":
         return tmp_upath_factory.mktemp()
     elif param == "s3":
-        try:
-            return tmp_upath_factory.mktemp("s3")
-        except ImportError as exc:
-            pytest.skip(str(exc))
+        return tmp_upath_factory.mktemp("s3")
+    elif param == "azure":
+        return tmp_upath_factory.mktemp("azure")
     raise ValueError(f"unknown {param=}")
 
 
