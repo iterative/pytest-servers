@@ -15,6 +15,7 @@ def aws_region_name():
 @pytest.fixture
 def s3_server(monkeypatch):
     """Spins up a moto s3 server on 127.0.0.1:5555."""
+    pytest.importorskip("s3fs")
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "foo")
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", "foo")
     with MockedS3Server() as server:
@@ -24,15 +25,19 @@ def s3_server(monkeypatch):
 @pytest.fixture
 def s3path(s3_server, aws_region_name):
     """Return a temporary path on a mocked S3 remote."""
-    path = UPath(
-        "s3://test",
-        client_kwargs={
-            "endpoint_url": s3_server.endpoint_url,
-            # NOTE: When not providing a region, moto returns 400
-            "region_name": aws_region_name,
-        },
-    )
-    path.mkdir()
+    try:
+        path = UPath(
+            "s3://test",
+            client_kwargs={
+                "endpoint_url": s3_server.endpoint_url,
+                # NOTE: When not providing a region, moto returns 400
+                "region_name": aws_region_name,
+            },
+        )
+        path.mkdir()
+    except ImportError as exc:
+        pytest.skip(str(exc))
+
     yield path
 
 
