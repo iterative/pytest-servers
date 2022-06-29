@@ -48,6 +48,8 @@ class TempUPathFactory:
         """
         if fs == "local":
             return self.local_temp_path()
+        elif fs == "memory":
+            return self.memory_temp_path()
         elif fs == "s3":
             if not self._s3_endpoint_url:
                 raise RemoteUnavailable("S3")
@@ -99,3 +101,10 @@ class TempUPathFactory:
         )
         path.mkdir()
         return path
+
+    def memory_temp_path(self, **kwargs) -> UPath:
+        """Creates a new container and returns an UPath instance"""
+        return UPath(
+            f"memory://{random_string()}",
+            **kwargs,
+        )
