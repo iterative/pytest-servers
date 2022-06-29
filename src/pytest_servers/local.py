@@ -1,6 +1,6 @@
 import pathlib
 
-from fsspec.implementations.local import LocalFileSystem
+from dvc_objects.fs.implementations.local import LocalFileSystem
 
 
 class LocalPath(type(pathlib.Path())):  # type: ignore[misc]
