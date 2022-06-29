@@ -48,6 +48,12 @@ def azure_path(tmp_upath_factory):
 
 
 @pytest.fixture
+def memory_path(tmp_upath_factory):
+    """Return a temporary path in a MemoryFileSystem."""
+    yield tmp_upath_factory.mktemp("memory")
+
+
+@pytest.fixture
 def tmp_upath(
     request: "FixtureRequest",
     tmp_upath_factory,
@@ -62,6 +68,8 @@ def tmp_upath(
     param = getattr(request, "param", "local")
     if param == "local":
         return tmp_upath_factory.mktemp()
+    elif param == "memory":
+        return tmp_upath_factory.mktemp("memory")
     elif param == "s3":
         return tmp_upath_factory.mktemp("s3")
     elif param == "azure":
