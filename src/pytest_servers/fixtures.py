@@ -28,7 +28,7 @@ def tmp_upath_factory(request: "FixtureRequest", s3_server, azurite):
 
 
 @pytest.fixture
-def s3path(tmp_upath_factory):
+def s3_path(tmp_upath_factory):
     """Temporary path on a mocked S3 remote."""
     yield tmp_upath_factory.mktemp("s3")
 
