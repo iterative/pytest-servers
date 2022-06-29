@@ -37,7 +37,7 @@ class TempUPathFactory:
         return tmp_upath_factory
 
     @skip_or_raise_on(ImportError, RemoteUnavailable)
-    def mktemp(self, fs: str = "local") -> "UPath":
+    def mktemp(self, fs: str = "local", **kwargs) -> "UPath":
         """Create a new temporary directory managed by the factory.
 
         :param fs:
@@ -49,18 +49,20 @@ class TempUPathFactory:
         if fs == "local":
             return self.local_temp_path()
         elif fs == "memory":
-            return self.memory_temp_path()
+            return self.memory_temp_path(**kwargs)
         elif fs == "s3":
             if not self._s3_endpoint_url:
                 raise RemoteUnavailable("S3")
             return self.s3_temp_path(
-                region_name="eu-south-1", endpoint_url=self._s3_endpoint_url
+                region_name="eu-south-1",
+                endpoint_url=self._s3_endpoint_url,
+                **kwargs,
             )
         elif fs == "azure":
             if not self._azure_connection_string:
                 raise RemoteUnavailable("Azure")
             return self.azure_temp_path(
-                connection_string=self._azure_connection_string  # type: ignore
+                connection_string=self._azure_connection_string, **kwargs
             )
         else:
             raise ValueError(fs)
@@ -74,9 +76,7 @@ class TempUPathFactory:
         return LocalPath(mktemp("pytest-servers"))
 
     def s3_temp_path(
-        self,
-        region_name: str,
-        endpoint_url: Optional[str] = None,
+        self, region_name: str, endpoint_url: Optional[str] = None, **kwargs
     ) -> UPath:
         """Creates a new S3 bucket and returns an UPath instance  .
 
@@ -88,16 +88,19 @@ class TempUPathFactory:
             client_kwargs["region_name"] = region_name
 
         bucket_name = f"pytest-servers-{random_string()}"
-        path = UPath(f"s3://{bucket_name}", client_kwargs=client_kwargs)
+        path = UPath(
+            f"s3://{bucket_name}", client_kwargs=client_kwargs, **kwargs
+        )
         path.mkdir()
         return path
 
-    def azure_temp_path(self, connection_string: str) -> UPath:
+    def azure_temp_path(self, connection_string: str, **kwargs) -> UPath:
         """Creates a new container and returns an UPath instance"""
         container_name = f"pytest-servers-{random_string()}"
         path = UPath(
             f"az://{container_name}",
             connection_string=connection_string,
+            **kwargs,
         )
         path.mkdir()
         return path
