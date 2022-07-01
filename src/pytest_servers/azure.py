@@ -48,10 +48,10 @@ def azurite(docker_client):
                 and "Azurite" in r.headers["Server"]
             ):
                 break
-        except Exception as e:  # noqa: E722 # pylint: disable=broad-except
+        except Exception as exc:  # noqa: E722 # pylint: disable=broad-except
             retries -= 1
             if retries < 0:
-                raise SystemError from e
+                raise SystemError from exc
             time.sleep(1)
 
     yield AZURITE_CONNECTION_STRING.format(port=port)

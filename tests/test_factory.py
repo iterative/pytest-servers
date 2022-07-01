@@ -1,17 +1,29 @@
+import importlib
+import sys
+from typing import TYPE_CHECKING
+
 import pytest
 import upath.implementations.cloud
 import upath.implementations.memory
 
 from pytest_servers.local import LocalPath
 
-try:
-    import s3fs
-except ImportError:
-    s3fs = None
-try:
-    import adlfs
-except ImportError:
-    adlfs = None
+if TYPE_CHECKING:
+    from _pytest.mark import MarkDecorator
+
+for module in ["s3fs", "adlfs", "gcsfs"]:
+    try:
+        importlib.import_module(module)
+    except ModuleNotFoundError:
+        pass
+
+
+def skip_if_module_missing(name: str) -> "MarkDecorator":
+    """Returns a mark that can be used to skip a test if a module is missing"""
+    return pytest.mark.skipif(
+        name not in sys.modules, reason=f"{name} is not installed"
+    )
+
 
 implementations = [
     pytest.param("local", LocalPath),
@@ -22,16 +34,17 @@ implementations = [
     pytest.param(
         "s3",
         upath.implementations.cloud.S3Path,
-        marks=[
-            pytest.mark.skipif(s3fs is None, reason="s3fs is not installed")
-        ],
+        marks=[skip_if_module_missing("s3fs")],
     ),
     pytest.param(
         "azure",
         upath.implementations.cloud.AzurePath,
-        marks=[
-            pytest.mark.skipif(adlfs is None, reason="adlfs is not installed")
-        ],
+        marks=[skip_if_module_missing("adlfs")],
+    ),
+    pytest.param(
+        "gcs",
+        upath.implementations.cloud.GCSPath,
+        marks=[skip_if_module_missing("gcsfs")],
     ),
 ]
 
@@ -45,7 +58,8 @@ class TestTmpUPathFactory:
     def test_init(self, tmp_upath_factory, fs, cls):
         path = tmp_upath_factory.mktemp(fs)
         assert isinstance(path, cls)
-        assert path.exists()
+        if fs != "gcs":  # for empty buckets on gcs path.exists() == False
+            assert path.exists()
 
     def test_is_empty(self, tmp_upath_factory, fs, cls):
         path = tmp_upath_factory.mktemp(fs)

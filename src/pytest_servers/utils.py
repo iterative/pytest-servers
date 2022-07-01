@@ -1,6 +1,7 @@
 import logging
 import os
 import random
+import socket
 import string
 import time
 
@@ -72,3 +73,17 @@ def skip_or_raise_on(call, *exceptions):
             current_test = os.environ["PYTEST_CURRENT_TEST"].split()[0]
             pytest.skip(f"{current_test}: {exc}")
         raise
+
+
+def get_free_port() -> None:
+    retries = 3
+    while retries >= 0:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.listen()
+                free_port = s.getsockname()[1]
+            return free_port
+        except OSError as exc:
+            retries -= 1
+            if retries <= 0:
+                raise SystemError("Could not get a free port") from exc
