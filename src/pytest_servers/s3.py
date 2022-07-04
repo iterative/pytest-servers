@@ -83,6 +83,5 @@ def s3_server(
     s3_fake_creds_file,  # pylint: disable=unused-argument,redefined-outer-name
 ):
     """Spins up a moto s3 server."""
-    pytest.importorskip("s3fs")
     with MockedS3Server(request.config.getoption("--moto-port")) as server:
         yield server
