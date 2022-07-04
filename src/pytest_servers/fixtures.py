@@ -67,14 +67,3 @@ def tmp_upath(
     elif param == "azure":
         return tmp_upath_factory.mktemp("azure")
     raise ValueError(f"unknown {param=}")
-
-
-def pytest_addoption(parser):
-    """Adds flags to configure mock remotes paths"""
-    group = parser.getgroup("pytest-servers", "pytest-servers options")
-
-    group.addoption(
-        "--moto-port",
-        help="Port for moto s3 server (defaults to %(default)s)",
-        default=MockedS3Server.DEFAULT_PORT,
-    )

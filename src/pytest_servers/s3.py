@@ -1,6 +1,6 @@
+import re
 import shlex
 import subprocess
-from typing import Optional
 
 import pytest
 import requests
@@ -10,14 +10,22 @@ from .utils import wait_until
 
 
 class MockedS3Server:
-    DEFAULT_PORT = 5555
-
-    def __init__(self, port: Optional[int] = None):
-        self.endpoint_url = f"http://127.0.0.1:{port or self.DEFAULT_PORT}"
-        self.port = port
+    def __init__(self):
+        self.port = None
         self.proc = None
 
+    @property
+    def endpoint_url(self):
+        if self.port is None:
+            raise ValueError("start() must be called first.")
+        return f"http://localhost:{self.port}"
+
     def __enter__(self):
+        self.start()
+        return self
+
+    def start(self):
+        """Starts moto s3 on a random port"""
         try:
             # should fail since we didn't start server yet
             r = requests.get(self.endpoint_url)
@@ -28,11 +36,13 @@ class MockedS3Server:
                 raise RuntimeError("moto server already up")
         self.proc = subprocess.Popen(
             shlex.split(
-                f"moto_server s3 -p {self.port}",
+                "moto_server s3 -p 0",  # get a random port
             ),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
+        out = self.proc.stderr.readline()
+        self.port = int(re.match(b".*http://127.0.0.1:(\\d+).*", out).group(1))
         wait_until(silent(lambda: requests.get(self.endpoint_url).ok), 5)
 
         return self
@@ -79,9 +89,8 @@ def s3_fake_creds_file(monkeypatch_session):
 
 @pytest.fixture(scope="session")
 def s3_server(
-    request,
     s3_fake_creds_file,  # pylint: disable=unused-argument,redefined-outer-name
 ):
     """Spins up a moto s3 server."""
-    with MockedS3Server(request.config.getoption("--moto-port")) as server:
+    with MockedS3Server() as server:
         yield server
