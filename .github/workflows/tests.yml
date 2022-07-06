@@ -24,9 +24,9 @@ jobs:
         include:
         - os: ubuntu-latest
           pyv: 'pypy-3.8'
-        - os: ubuntu-latest
-          pyv: '3.11-dev'
-          nox_session: 'tests-3.11'
+        # - os: ubuntu-latest
+        #   pyv: '3.11-dev'
+        #   nox_session: 'tests-3.11'
 
     steps:
     - name: Check out the repository
