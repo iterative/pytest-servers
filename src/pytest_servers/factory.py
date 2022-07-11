@@ -120,11 +120,13 @@ class TempUPathFactory:
         return path
 
     def memory_temp_path(self, **kwargs) -> UPath:
-        """Creates a new container and returns an UPath instance"""
-        return UPath(
-            f"memory://{random_string()}",
+        """Creates a new temporary in-memory path returns an UPath instance"""
+        path = UPath(
+            f"memory:{random_string()}",
             **kwargs,
         )
+        path.mkdir()
+        return path
 
     def gcs_temp_path(
         self, endpoint_url: Optional[str] = None, **kwargs
