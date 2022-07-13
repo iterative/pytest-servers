@@ -51,7 +51,8 @@ def docker_client():
         return
 
     try:
-        yield docker.from_env()
+        with pytest.deprecated_call():
+            yield docker.from_env()
     except docker.errors.DockerException as exc:
         logging.exception(f"Failed to get docker client: {exc}")
         yield None
