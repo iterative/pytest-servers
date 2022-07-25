@@ -19,16 +19,9 @@ def aws_region_name():
 
 
 @pytest.fixture(scope="session")
-def tmp_upath_factory(
-    request: "FixtureRequest", s3_server, azurite, fake_gcs_server
-):
+def tmp_upath_factory(request: "FixtureRequest"):
     """Return a TempUPathFactory instance for the test session."""
-    yield TempUPathFactory.from_config(
-        request.config,
-        s3_endpoint_url=s3_server.endpoint_url,
-        gcs_endpoint_url=fake_gcs_server,
-        azure_connection_string=azurite,
-    )
+    yield TempUPathFactory.from_request(request)
 
 
 @pytest.fixture

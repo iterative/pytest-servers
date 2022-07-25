@@ -9,11 +9,17 @@ from pytest_servers.local import LocalPath
 from pytest_servers.utils import random_string, skip_or_raise_on
 
 if TYPE_CHECKING:
-    from pytest import Config
+    from pytest import FixtureRequest
 
 
 class TempUPathFactory:
     """Factory for temporary directories with universal-pathlib and mocked servers"""  # noqa: E501
+
+    mock_remotes = {
+        "azure": ("azurite", "_azure_connection_string"),
+        "gcs": ("fake_gcs_server", "_gcs_endpoint_url"),
+        "s3": ("s3_server", "_s3_endpoint_url"),
+    }
 
     def __init__(
         self,
@@ -21,25 +27,47 @@ class TempUPathFactory:
         azure_connection_string: Optional[str] = None,
         gcs_endpoint_url: Optional[str] = None,
     ):
+        self._request: Optional["FixtureRequest"] = None
+
         self._local_path_factory: Optional["TempPathFactory"] = None
-        self._s3_endpoint_url = s3_endpoint_url
         self._azure_connection_string = azure_connection_string
         self._gcs_endpoint_url = gcs_endpoint_url
+        self._s3_endpoint_url = s3_endpoint_url
 
     @classmethod
-    def from_config(
-        cls, config: "Config", *args, **kwargs
+    def from_request(
+        cls, request: "FixtureRequest", *args, **kwargs
     ) -> "TempUPathFactory":
         """Create a factory according to pytest configuration."""
         tmp_upath_factory = cls(*args, **kwargs)
         tmp_upath_factory._local_path_factory = TempPathFactory.from_config(
-            config, _ispytest=True
+            request.config, _ispytest=True
         )
+        tmp_upath_factory._request = request
 
         return tmp_upath_factory
 
+    def _mock_remote_setup(self, fs: "str") -> None:
+        try:
+            mock_remote_fixture, remote_config_name = self.mock_remotes[fs]
+        except KeyError:
+            raise RemoteUnavailable(f"No mock remote available for fs: {fs}")
+
+        if getattr(self, remote_config_name):  # remote is already configured
+            return
+
+        assert self._request
+        try:
+            remote_config = self._request.getfixturevalue(mock_remote_fixture)
+            assert remote_config
+            setattr(self, remote_config_name, remote_config)
+        except Exception as exc:
+            raise RemoteUnavailable(fs) from exc
+
     @skip_or_raise_on(ImportError, RemoteUnavailable)
-    def mktemp(self, fs: str = "local", **kwargs) -> "UPath":
+    def mktemp(
+        self, fs: str = "local", mock: bool = True, **kwargs
+    ) -> "UPath":
         """Create a new temporary directory managed by the factory.
 
         :param fs:
@@ -50,6 +78,9 @@ class TempUPathFactory:
             - azure
             - gcs
 
+        :param mock:
+            Set to False to use real remotes
+
         :returns:
             :class:`upath.Upath` to the new directory.
         """
@@ -57,9 +88,11 @@ class TempUPathFactory:
             return self.local_temp_path()
         elif fs == "memory":
             return self.memory_temp_path(**kwargs)
-        elif fs == "s3":
-            if not self._s3_endpoint_url:
-                raise RemoteUnavailable(fs)
+
+        if mock:
+            self._mock_remote_setup(fs)
+
+        if fs == "s3":
             return self.s3_temp_path(
                 region_name="eu-south-1",
                 endpoint_url=self._s3_endpoint_url,
@@ -67,13 +100,11 @@ class TempUPathFactory:
             )
         elif fs == "azure":
             if not self._azure_connection_string:
-                raise RemoteUnavailable(fs)
+                raise RemoteUnavailable("missing connection string")
             return self.azure_temp_path(
                 connection_string=self._azure_connection_string, **kwargs
             )
         elif fs == "gcs":
-            if not self._gcs_endpoint_url:
-                raise RemoteUnavailable(fs)
             return self.gcs_temp_path(
                 endpoint_url=self._gcs_endpoint_url,
                 **kwargs,

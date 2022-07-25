@@ -93,6 +93,6 @@ def s3_fake_creds_file(monkeypatch_session):
 def s3_server(
     s3_fake_creds_file,  # pylint: disable=unused-argument,redefined-outer-name
 ):
-    """Spins up a moto s3 server."""
+    """Spins up a moto s3 server. Returns the endpoint URL."""
     with MockedS3Server() as server:
-        yield server
+        yield server.endpoint_url
