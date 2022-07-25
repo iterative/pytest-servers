@@ -13,6 +13,7 @@ GCS_DEFAULT_PORT = 4443
 
 @pytest.fixture(scope="session")
 def fake_gcs_server(docker_client):
+    """Spins up a fake-gcs-server container. Returns the endpoint URL."""
     if docker_client is None:
         logger.warning(
             "fake-gcs-server cannot run because docker is not available."
