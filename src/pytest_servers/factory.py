@@ -153,7 +153,7 @@ class TempUPathFactory:
     def memory_temp_path(self, **kwargs) -> UPath:
         """Creates a new temporary in-memory path returns an UPath instance"""
         path = UPath(
-            f"memory:/{random_string()}",
+            f"memory://{random_string()}",
             **kwargs,
         )
         path.mkdir()
