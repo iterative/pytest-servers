@@ -39,7 +39,11 @@ def docker_client():
     """Run docker commands using the python API"""
     import docker
 
-    yield docker.from_env()
+    client = docker.from_env()
+
+    yield client
+
+    client.close()
 
 
 def is_pytest_session() -> bool:

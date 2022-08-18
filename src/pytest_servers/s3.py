@@ -49,14 +49,16 @@ class MockedS3Server:
 
         return self
 
-    def close(self):
+    def close(self, *args):
         if self.proc is not None:
             self.proc.terminate()
             self.proc.wait()
+            self.proc.__exit__(*args)
+
         self.proc = None
 
     def __exit__(self, *exc_args):
-        self.close()
+        self.close(*exc_args)
 
 
 @pytest.fixture(scope="session")
