@@ -85,15 +85,15 @@ class TempUPathFactory:
             :class:`upath.Upath` to the new directory.
         """
         if fs == "local":
-            return self.local_temp_path()
+            return self.local()
         elif fs == "memory":
-            return self.memory_temp_path(**kwargs)
+            return self.memory(**kwargs)
 
         if mock:
             self._mock_remote_setup(fs)
 
         if fs == "s3":
-            return self.s3_temp_path(
+            return self.s3(
                 region_name="eu-south-1",
                 endpoint_url=self._s3_endpoint_url,
                 **kwargs,
@@ -101,18 +101,18 @@ class TempUPathFactory:
         elif fs == "azure":
             if not self._azure_connection_string:
                 raise RemoteUnavailable("missing connection string")
-            return self.azure_temp_path(
+            return self.azure(
                 connection_string=self._azure_connection_string, **kwargs
             )
         elif fs == "gcs":
-            return self.gcs_temp_path(
+            return self.gcs(
                 endpoint_url=self._gcs_endpoint_url,
                 **kwargs,
             )
         else:
             raise ValueError(fs)
 
-    def local_temp_path(self):
+    def local(self):
         mktemp = (
             self._local_path_factory.mktemp
             if self._local_path_factory is not None
@@ -120,7 +120,7 @@ class TempUPathFactory:
         )
         return LocalPath(mktemp("pytest-servers"))
 
-    def s3_temp_path(
+    def s3(
         self, region_name: str, endpoint_url: Optional[str] = None, **kwargs
     ) -> UPath:
         """Creates a new S3 bucket and returns an UPath instance  .
@@ -139,7 +139,7 @@ class TempUPathFactory:
         path.mkdir()
         return path
 
-    def azure_temp_path(self, connection_string: str, **kwargs) -> UPath:
+    def azure(self, connection_string: str, **kwargs) -> UPath:
         """Creates a new container and returns an UPath instance"""
         container_name = f"pytest-servers-{random_string()}"
         path = UPath(
@@ -150,7 +150,7 @@ class TempUPathFactory:
         path.mkdir()
         return path
 
-    def memory_temp_path(self, **kwargs) -> UPath:
+    def memory(self, **kwargs) -> UPath:
         """Creates a new temporary in-memory path returns an UPath instance"""
         path = UPath(
             f"memory:/{random_string()}",
@@ -159,9 +159,7 @@ class TempUPathFactory:
         path.mkdir()
         return path
 
-    def gcs_temp_path(
-        self, endpoint_url: Optional[str] = None, **kwargs
-    ) -> UPath:
+    def gcs(self, endpoint_url: Optional[str] = None, **kwargs) -> UPath:
         """Creates a new gcs bucket and returns an UPath instance.
 
         `endpoint_url` can be used to use custom servers

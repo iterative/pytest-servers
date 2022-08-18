@@ -25,13 +25,13 @@ def tmp_upath_factory(request: "FixtureRequest"):
 
 
 @pytest.fixture
-def s3_path(tmp_upath_factory):
+def tmp_s3_path(tmp_upath_factory):
     """Temporary path on a mocked S3 remote."""
     yield tmp_upath_factory.mktemp("s3")
 
 
 @pytest.fixture
-def local_path(tmp_upath_factory, monkeypatch):
+def tmp_local_path(tmp_upath_factory, monkeypatch):
     """Return a temporary path."""
     ret = tmp_upath_factory.mktemp()
     monkeypatch.chdir(ret)
@@ -39,19 +39,19 @@ def local_path(tmp_upath_factory, monkeypatch):
 
 
 @pytest.fixture
-def azure_path(tmp_upath_factory):
+def tmp_azure_path(tmp_upath_factory):
     """Return a temporary path."""
     yield tmp_upath_factory.mktemp("azure")
 
 
 @pytest.fixture
-def memory_path(tmp_upath_factory):
+def tmp_memory_path(tmp_upath_factory):
     """Return a temporary path in a MemoryFileSystem."""
     yield tmp_upath_factory.mktemp("memory")
 
 
 @pytest.fixture
-def gcs_path(tmp_upath_factory):
+def tmp_gcs_path(tmp_upath_factory):
     """Return a temporary path."""
     yield tmp_upath_factory.mktemp("gcs")
 
