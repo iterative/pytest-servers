@@ -1,5 +1,4 @@
 import logging
-import os
 import random
 import socket
 import string
@@ -44,11 +43,6 @@ def docker_client():
     yield client
 
     client.close()
-
-
-def is_pytest_session() -> bool:
-    """returns true if currently running a pytest session"""
-    return "PYTEST_CURRENT_TEST" in os.environ
 
 
 def get_free_port() -> None:

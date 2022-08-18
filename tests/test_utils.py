@@ -1,12 +1,6 @@
 import os
 from pathlib import Path
 
-from pytest_servers.utils import is_pytest_session
-
-
-def test_is_pytest_session():
-    assert is_pytest_session()
-
 
 def test_s3_fake_creds_file(
     s3_fake_creds_file,  # pylint: disable=unused-argument
