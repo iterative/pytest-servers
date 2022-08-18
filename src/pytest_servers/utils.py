@@ -6,7 +6,6 @@ import string
 import time
 
 import pytest
-from funcy import decorator
 
 logger = logging.getLogger(__name__)
 
@@ -38,42 +37,14 @@ def monkeypatch_session():
 @pytest.fixture(scope="session")
 def docker_client():
     """Run docker commands using the python API"""
-    if os.environ.get("CI") and os.name == "nt":
-        # docker-py currently fails to pull images on windows (?)
-        yield None
-        return
+    import docker
 
-    try:
-        import docker
-    except ImportError:
-        logger.warning("docker is not installed, run pip install docker")
-        yield None
-        return
-
-    try:
-        with pytest.deprecated_call():
-            yield docker.from_env()
-    except docker.errors.DockerException as exc:
-        logging.exception(f"Failed to get docker client: {exc}")
-        yield None
+    yield docker.from_env()
 
 
 def is_pytest_session() -> bool:
     """returns true if currently running a pytest session"""
     return "PYTEST_CURRENT_TEST" in os.environ
-
-
-@decorator
-def skip_or_raise_on(call, *exceptions):
-    """If in a pytest session, skips the current test when the given exceptions are raised"""  # noqa: E501
-    try:
-        return call()
-    except exceptions as exc:
-        if is_pytest_session():
-            # just get the test name
-            current_test = os.environ["PYTEST_CURRENT_TEST"].split()[0]
-            pytest.skip(f"{current_test}: {exc}")
-        raise
 
 
 def get_free_port() -> None:

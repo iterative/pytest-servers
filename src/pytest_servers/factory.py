@@ -6,7 +6,7 @@ from upath import UPath
 
 from pytest_servers.exceptions import RemoteUnavailable
 from pytest_servers.local import LocalPath
-from pytest_servers.utils import random_string, skip_or_raise_on
+from pytest_servers.utils import random_string
 
 if TYPE_CHECKING:
     from pytest import FixtureRequest
@@ -57,14 +57,10 @@ class TempUPathFactory:
             return
 
         assert self._request
-        try:
-            remote_config = self._request.getfixturevalue(mock_remote_fixture)
-            assert remote_config
-            setattr(self, remote_config_name, remote_config)
-        except Exception as exc:
-            raise RemoteUnavailable(fs) from exc
+        remote_config = self._request.getfixturevalue(mock_remote_fixture)
+        assert remote_config, f"Failed to setup remote for {fs}"
+        setattr(self, remote_config_name, remote_config)
 
-    @skip_or_raise_on(ImportError, RemoteUnavailable)
     def mktemp(
         self, fs: str = "local", mock: bool = True, **kwargs
     ) -> "UPath":

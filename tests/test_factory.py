@@ -1,6 +1,4 @@
 import importlib
-import sys
-from typing import TYPE_CHECKING
 
 import pytest
 import upath.implementations.cloud
@@ -8,21 +6,8 @@ import upath.implementations.memory
 
 from pytest_servers.local import LocalPath
 
-if TYPE_CHECKING:
-    from _pytest.mark import MarkDecorator
-
 for module in ["s3fs", "adlfs", "gcsfs"]:
-    try:
-        importlib.import_module(module)
-    except ModuleNotFoundError:
-        pass
-
-
-def skip_if_module_missing(name: str) -> "MarkDecorator":
-    """Returns a mark that can be used to skip a test if a module is missing"""
-    return pytest.mark.skipif(
-        name not in sys.modules, reason=f"{name} is not installed"
-    )
+    importlib.import_module(module)
 
 
 implementations = [
@@ -34,17 +19,14 @@ implementations = [
     pytest.param(
         "s3",
         upath.implementations.cloud.S3Path,
-        marks=[skip_if_module_missing("s3fs")],
     ),
     pytest.param(
         "azure",
         upath.implementations.cloud.AzurePath,
-        marks=[skip_if_module_missing("adlfs")],
     ),
     pytest.param(
         "gcs",
         upath.implementations.cloud.GCSPath,
-        marks=[skip_if_module_missing("gcsfs")],
     ),
 ]
 

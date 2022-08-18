@@ -17,12 +17,6 @@ logger = logging.getLogger(__name__)
 @pytest.fixture(scope="session")
 def azurite(docker_client):
     """Spins up an azurite container. Returns the connection string."""
-    if docker_client is None:
-        logger.warning(
-            "Azurite cannot be started because docker is not available."
-        )
-        yield None
-        return
 
     container = docker_client.containers.run(
         "mcr.microsoft.com/azure-storage/azurite",
