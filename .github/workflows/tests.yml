@@ -22,7 +22,6 @@ jobs:
         os: [ubuntu-20.04, windows-latest, macos-latest]
         pyv: ['3.8', '3.9', '3.10']
         include:
-        include:
         - {os: ubuntu-latest, pyv: 'pypy3.8'}
         - {os: ubuntu-latest, pyv: '3.11.0-rc - 3.11', nox_pyv: '3.11'}
 
