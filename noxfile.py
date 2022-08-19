@@ -10,20 +10,22 @@ nox.options.sessions = "lint", "tests"
 
 @nox.session(python=["3.8", "3.9", "3.10", "3.11", "pypy3.8", "pypy3.9"])
 def tests(session: nox.Session) -> None:
-    session.install(".[tests,all]")
-    session.run(
-        "pytest",
-        "--cov",
-        "--cov-config=pyproject.toml",
-        *session.posargs,
-        env={"COVERAGE_FILE": f".coverage.{session.python}"},
-    )
+    session.install(".[dev]")
+
+    # pytest loads plugin before the test is run, so we have to start coverage
+    # before pytest loads.
+    coverage_file = f".coverage.{session.python}"
+    cov_args = "--rcfile", "pyproject.toml", "--data-file", coverage_file
+    session.run("coverage", "run", *cov_args, "-m", "pytest", *session.posargs)
+    session.run("coverage", "report", *cov_args)
+    if os.getenv("COVERAGE_XML"):
+        session.run("coverage", "xml", *cov_args, "-o", "coverage.xml")
 
 
 @nox.session
 def lint(session: nox.Session) -> None:
     session.install("pre-commit")
-    session.install("-e", ".[dev,all]")
+    session.install("-e", ".[dev]")
 
     args = *(session.posargs or ("--show-diff-on-failure",)), "--all-files"
     session.run("pre-commit", "run", *args)
