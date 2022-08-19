@@ -1,24 +1,24 @@
+import os
+import sys
 import tempfile
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
-from pytest import TempPathFactory
+import pytest
 from upath import UPath
 
 from pytest_servers.exceptions import RemoteUnavailable
 from pytest_servers.local import LocalPath
 from pytest_servers.utils import random_string
 
-if TYPE_CHECKING:
-    from pytest import FixtureRequest
-
 
 class TempUPathFactory:
     """Factory for temporary directories with universal-pathlib and mocked servers"""  # noqa: E501
 
     mock_remotes = {
-        "azure": ("azurite", "_azure_connection_string"),
-        "gcs": ("fake_gcs_server", "_gcs_endpoint_url"),
-        "s3": ("s3_server", "_s3_endpoint_url"),
+        # remote: (fixture_name, config attribute name, requires docker)
+        "azure": ("azurite", "_azure_connection_string", True),
+        "gcs": ("fake_gcs_server", "_gcs_endpoint_url", True),
+        "s3": ("s3_server", "_s3_endpoint_url", False),
     }
 
     def __init__(
@@ -27,21 +27,21 @@ class TempUPathFactory:
         azure_connection_string: Optional[str] = None,
         gcs_endpoint_url: Optional[str] = None,
     ):
-        self._request: Optional["FixtureRequest"] = None
+        self._request: Optional["pytest.FixtureRequest"] = None
 
-        self._local_path_factory: Optional["TempPathFactory"] = None
+        self._local_path_factory: Optional["pytest.TempPathFactory"] = None
         self._azure_connection_string = azure_connection_string
         self._gcs_endpoint_url = gcs_endpoint_url
         self._s3_endpoint_url = s3_endpoint_url
 
     @classmethod
     def from_request(
-        cls, request: "FixtureRequest", *args, **kwargs
+        cls, request: "pytest.FixtureRequest", *args, **kwargs
     ) -> "TempUPathFactory":
         """Create a factory according to pytest configuration."""
         tmp_upath_factory = cls(*args, **kwargs)
-        tmp_upath_factory._local_path_factory = TempPathFactory.from_config(
-            request.config, _ispytest=True
+        tmp_upath_factory._local_path_factory = (
+            pytest.TempPathFactory.from_config(request.config, _ispytest=True)
         )
         tmp_upath_factory._request = request
 
@@ -49,16 +49,36 @@ class TempUPathFactory:
 
     def _mock_remote_setup(self, fs: "str") -> None:
         try:
-            mock_remote_fixture, remote_config_name = self.mock_remotes[fs]
+            (
+                mock_remote_fixture,
+                remote_config_name,
+                needs_docker,
+            ) = self.mock_remotes[fs]
         except KeyError:
             raise RemoteUnavailable(f"No mock remote available for fs: {fs}")
 
         if getattr(self, remote_config_name):  # remote is already configured
             return
 
+        if needs_docker and os.environ.get("CI"):
+            if sys.platform == "win32":
+                pytest.skip(
+                    "disabled for Windows on Github Actions: "
+                    "https://github.com/actions/runner-images/issues/1143"
+                )
+            elif sys.platform == "darwin":
+                pytest.skip(
+                    "disabled for MacOS on Github Actions: "
+                    "https://github.com/actions/runner-images/issues/2150"
+                )
+
         assert self._request
-        remote_config = self._request.getfixturevalue(mock_remote_fixture)
-        assert remote_config, f"Failed to setup remote for {fs}"
+        try:
+            remote_config = self._request.getfixturevalue(mock_remote_fixture)
+        except pytest.FixtureLookupError:
+            raise RemoteUnavailable(
+                f'{fs}: Failed to setup "{mock_remote_fixture}" fixture'
+            )
         setattr(self, remote_config_name, remote_config)
 
     def mktemp(

@@ -9,6 +9,3 @@ class PytestServersException(Exception):
 
 class RemoteUnavailable(PytestServersException):
     """Raise when the given remote is not available"""
-
-    def __init__(self, remote: str, *args):
-        super().__init__(f"{remote} remote is not available", *args)
