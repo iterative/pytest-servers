@@ -48,8 +48,10 @@ jobs:
 
     - name: Run tests
       continue-on-error: ${{ matrix.nox_pyv == '3.11' }}
-      run: nox -s tests-${{ matrix.nox_pyv || matrix.pyv }} -- --cov-report=xml
+      run: nox -s tests-${{ matrix.nox_pyv || matrix.pyv }}
       shell: bash
+      env:
+        COVERAGE_XML: true
 
     - name: Upload coverage report
       uses: codecov/codecov-action@v2.1.0
