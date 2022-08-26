@@ -51,6 +51,3 @@ def fake_gcs_server(docker_client, tmp_path_factory):
     wait_until(lambda: requests.get(f"{url}/storage/v1/b", timeout=10).ok, 10)
 
     yield url
-
-    if container is not None:
-        container.stop()
