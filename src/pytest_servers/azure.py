@@ -1,8 +1,10 @@
 import logging
-import time
 
 import pytest
 import requests
+from filelock import FileLock
+
+from .utils import wait_until, wait_until_running
 
 AZURITE_PORT = 10000
 AZURITE_URL = "http://localhost:{port}"
@@ -15,40 +17,47 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
-def azurite(docker_client):
+def azurite(docker_client, tmp_path_factory):
     """Spins up an azurite container. Returns the connection string."""
+    from docker.errors import NotFound
 
-    container = docker_client.containers.run(
-        "mcr.microsoft.com/azure-storage/azurite",
-        command="azurite-blob --loose --blobHost 0.0.0.0",
-        name="pytest-servers-azurite",
-        stdout=True,
-        stderr=True,
-        detach=True,
-        remove=True,
-        ports={f"{AZURITE_PORT}/tcp": None},  # assign a random port
-    )
+    container_name = "pytest-servers-azurite"
+    root_tmp_dir = tmp_path_factory.getbasetemp().parent
+    azurite_lock = root_tmp_dir / "azurite.lock"
 
-    port = docker_client.api.port("pytest-servers-azurite", AZURITE_PORT)[0][
-        "HostPort"
-    ]
-    retries = 3
-    while True:
+    with FileLock(azurite_lock):
         try:
-            # wait until the container is up, even a 400 status code is ok
-            r = requests.get(AZURITE_URL.format(port=port), timeout=10)
-            if (
-                r.status_code == 400
-                and "Server" in r.headers
-                and "Azurite" in r.headers["Server"]
-            ):
-                break
-        except Exception as exc:  # noqa: E722 # pylint: disable=broad-except
-            retries -= 1
-            if retries < 0:
-                raise SystemError from exc
-            time.sleep(1)
+            port = docker_client.api.port(container_name, AZURITE_PORT)[0][
+                "HostPort"
+            ]
+            container = None
+        except NotFound:
+            container = docker_client.containers.run(
+                "mcr.microsoft.com/azure-storage/azurite",
+                command="azurite-blob --loose --blobHost 0.0.0.0",
+                name=container_name,
+                stdout=True,
+                stderr=True,
+                detach=True,
+                remove=True,
+                ports={f"{AZURITE_PORT}/tcp": None},  # assign a random port
+            )
+            port = docker_client.api.port(container_name, AZURITE_PORT)[0][
+                "HostPort"
+            ]
+            wait_until_running(container)
+
+    def is_healthy():
+        r = requests.get(AZURITE_URL.format(port=port), timeout=3)
+        return (
+            r.status_code == 400
+            and "Server" in r.headers
+            and "Azurite" in r.headers["Server"]
+        )
+
+    wait_until(is_healthy, 10)
 
     yield AZURITE_CONNECTION_STRING.format(port=port)
 
-    container.stop()
+    if container is not None:
+        container.stop()
