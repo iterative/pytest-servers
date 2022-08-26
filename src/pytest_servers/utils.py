@@ -3,8 +3,12 @@ import random
 import socket
 import string
 import time
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from docker.models.containers import Container
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +47,16 @@ def docker_client():
     yield client
 
     client.close()
+
+
+def wait_until_running(
+    container: "Container", timeout: int = 30, pause: float = 0.5
+):
+    def check():
+        container.reload()
+        return container.status == "running"
+
+    wait_until(check, timeout=timeout, pause=pause)
 
 
 def get_free_port() -> None:

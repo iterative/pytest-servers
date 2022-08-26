@@ -1,10 +1,10 @@
 import logging
-import time
 
 import pytest
 import requests
+from filelock import FileLock
 
-from .utils import get_free_port
+from .utils import get_free_port, wait_until, wait_until_running
 
 logger = logging.getLogger(__name__)
 
@@ -12,37 +12,45 @@ GCS_DEFAULT_PORT = 4443
 
 
 @pytest.fixture(scope="session")
-def fake_gcs_server(docker_client):
+def fake_gcs_server(docker_client, tmp_path_factory):
     """Spins up a fake-gcs-server container. Returns the endpoint URL."""
+    from docker.errors import NotFound
+
     # Some features, such as signed URLs and resumable uploads, require
     # `fake-gcs-server` to know the actual url it will be accessed
     # with. We can provide that with -public-host and -external-url.
     port = get_free_port()
-    url = f"http://localhost:{port}"
-    command = f"-scheme http -public-host {url} -external-url {url}"
+    container_port = f"{GCS_DEFAULT_PORT}/tcp"  # FIXME: better name
+    container_name = "pytest-servers-fake-gcs-server"
+    root_tmp_dir = tmp_path_factory.getbasetemp().parent
+    fake_gcs_server_lock = root_tmp_dir / "fake_gcs_server.lock"
 
-    container = docker_client.containers.run(
-        "fsouza/fake-gcs-server:latest",
-        command=command,
-        name="pytest-servers-fake-gcs-server",
-        stdout=True,
-        stderr=True,
-        detach=True,
-        remove=True,
-        ports={f"{GCS_DEFAULT_PORT}/tcp": port},
-    )
-    retries = 3
-    while True:
+    with FileLock(fake_gcs_server_lock):
         try:
-            r = requests.get(f"{url}/storage/v1/b", timeout=10)
-            if r.ok:
-                break
-        except Exception as exc:  # noqa: E722 # pylint: disable=broad-except
-            retries -= 1
-            if retries < 0:
-                raise SystemError from exc
-            time.sleep(1)
+            port = docker_client.api.port(container_name, GCS_DEFAULT_PORT)[0][
+                "HostPort"
+            ]
+            url = f"http://localhost:{port}"
+            container = None
+        except NotFound:
+            url = f"http://localhost:{port}"
+            command = f"-scheme http -public-host {url} -external-url {url}"
+            container = docker_client.containers.run(
+                "fsouza/fake-gcs-server:latest",
+                name=container_name,
+                command=command,
+                stdout=True,
+                stderr=True,
+                detach=True,
+                remove=True,
+                ports={container_port: port},
+            )
+            wait_until_running(container)
+
+    # make sure the container is healthy
+    wait_until(lambda: requests.get(f"{url}/storage/v1/b", timeout=10).ok, 10)
 
     yield url
 
-    container.stop()
+    if container is not None:
+        container.stop()

@@ -28,7 +28,7 @@ known_first_party = ["pytest_servers"]
 line_length = 79
 
 [tool.pytest.ini_options]
-addopts = "-ra"
+addopts = "-ra -n=auto"
 
 [tool.coverage.run]
 branch = true
