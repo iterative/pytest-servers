@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/iterative/py-template",
-  "commit": "e1ffa9dbf83cd85544cea7cc0a70c615a5c9d86a",
+  "commit": "7161f855edeb6822757d794e25f2627733b4a2b7",
   "checkout": null,
   "context": {
     "cookiecutter": {
@@ -15,11 +15,6 @@
       "license": "Apache-2.0",
       "short_description": "pytest-servers",
       "development_status": "Development Status :: 1 - Planning",
-      "_copy_without_render": [
-        ".github/workflows/release.yaml",
-        ".github/workflows/tests.yaml",
-        ".github/workflows/update-template.yaml"
-      ],
       "_template": "https://github.com/iterative/py-template"
     }
   },
