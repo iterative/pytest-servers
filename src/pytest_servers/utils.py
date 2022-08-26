@@ -15,12 +15,18 @@ logger = logging.getLogger(__name__)
 
 def wait_until(pred, timeout: float, pause: float = 0.1):
     start = time.perf_counter()
+    exc = None
     while (time.perf_counter() - start) < timeout:
-        value = pred()
-        if value:
-            return value
+        try:
+            value = pred()
+        except Exception as e:  # pylint: disable=broad-except
+            exc = e
+        else:
+            if value:
+                return value
         time.sleep(pause)
-    raise TimeoutError("timed out waiting")
+
+    raise TimeoutError("timed out waiting") from exc
 
 
 def random_string(n: int = 6):

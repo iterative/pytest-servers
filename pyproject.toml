@@ -76,9 +76,6 @@ disable = [
     "missing-class-docstring", "raise-missing-from", "import-outside-toplevel",
 ]
 
-[tool.pylint.typecheck]
-signature-mutators = ["funcy.decorators.decorator"]
-
 [tool.pylint.variables]
 dummy-variables-rgx = "_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_"
 ignored-argument-names = "_.*|^ignored_|^unused_|args|kwargs"

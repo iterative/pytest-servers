@@ -4,7 +4,6 @@ import subprocess
 
 import pytest
 import requests
-from funcy import silent
 
 from .utils import wait_until
 
@@ -43,9 +42,7 @@ class MockedS3Server:
         )
         out = self.proc.stderr.readline()
         self.port = int(re.match(b".*http://127.0.0.1:(\\d+).*", out).group(1))
-        wait_until(
-            silent(lambda: requests.get(self.endpoint_url, timeout=5).ok), 5
-        )
+        wait_until(lambda: requests.get(self.endpoint_url, timeout=5).ok, 5)
 
         return self
 
