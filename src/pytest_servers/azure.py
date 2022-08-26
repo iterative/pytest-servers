@@ -58,6 +58,3 @@ def azurite(docker_client, tmp_path_factory):
     wait_until(is_healthy, 10)
 
     yield AZURITE_CONNECTION_STRING.format(port=port)
-
-    if container is not None:
-        container.stop()
