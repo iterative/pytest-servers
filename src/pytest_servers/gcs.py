@@ -20,8 +20,11 @@ def fake_gcs_server(docker_client, tmp_path_factory):
     # `fake-gcs-server` to know the actual url it will be accessed
     # with. We can provide that with -public-host and -external-url.
     port = get_free_port()
-    container_port = f"{GCS_DEFAULT_PORT}/tcp"  # FIXME: better name
+
+    fake_gcs_image = "fsouza/fake-gcs-server"
+    fake_gcs_tag = "1.38.0"
     container_name = "pytest-servers-fake-gcs-server"
+
     root_tmp_dir = tmp_path_factory.getbasetemp().parent
     fake_gcs_server_lock = root_tmp_dir / "fake_gcs_server.lock"
 
@@ -36,14 +39,14 @@ def fake_gcs_server(docker_client, tmp_path_factory):
             url = f"http://localhost:{port}"
             command = f"-scheme http -public-host {url} -external-url {url}"
             container = docker_client.containers.run(
-                "fsouza/fake-gcs-server:latest",
+                f"{fake_gcs_image}:{fake_gcs_tag}",
                 name=container_name,
                 command=command,
                 stdout=True,
                 stderr=True,
                 detach=True,
                 remove=True,
-                ports={container_port: port},
+                ports={f"{GCS_DEFAULT_PORT}/tcp": port},
             )
             wait_until_running(container)
 
