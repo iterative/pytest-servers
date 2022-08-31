@@ -99,11 +99,11 @@ to generate temporary paths on different (mocked) filesystems:
 
 Some convenience fixtures that wrap `tmp_upath_factory.mktemp` and return a paths on these filesystems are also available:
 
-- ``local_path``
-- ``memory_path``
-- ``s3_path``
-- ``gcs_path``
-- ``azure_path``
+- ``tmp_local_path``
+- ``tmp_memory_path``
+- ``tmp_s3_path``
+- ``tmp_gcs_path``
+- ``tmp_azure_path``
 
 The `tmp_upath` fixture can be used for parametrizing paths with pytest's indirect parametrization:
 
