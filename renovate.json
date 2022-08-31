@@ -3,18 +3,12 @@
   "enabledManagers": ["regex"],
   "regexManagers": [
     {
-      "fileMatch": ["^src/pytest_servers/gcs.py$"],
-      "matchStrings": [
-        "fake_gcs_image = \"(?<depName>.*?)\"",
-        "fake_gcs_tag = \"(?<currentValue>.*?)\""
+      "fileMatch": [
+        "^src/pytest_servers/gcs.py$",
+        "^src/pytest_servers/azure.py$"
       ],
-      "datasourceTemplate": "docker"
-    },
-    {
-      "fileMatch": ["^src/pytest_servers/azure.py$"],
       "matchStrings": [
-        "azurite_image = \"(?<depName>.*?)\"",
-        "azurite_tag = \"(?<currentValue>.*?)\""
+        "\"(?<depName>.*?):(?<currentValue>.*)\".*?#\\s+renovate"
       ],
       "datasourceTemplate": "docker"
     }
