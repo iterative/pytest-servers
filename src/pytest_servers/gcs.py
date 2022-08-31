@@ -21,8 +21,6 @@ def fake_gcs_server(docker_client, tmp_path_factory):
     # with. We can provide that with -public-host and -external-url.
     port = get_free_port()
 
-    fake_gcs_image = "fsouza/fake-gcs-server"
-    fake_gcs_tag = "1.38.0"
     container_name = "pytest-servers-fake-gcs-server"
 
     root_tmp_dir = tmp_path_factory.getbasetemp().parent
@@ -39,7 +37,7 @@ def fake_gcs_server(docker_client, tmp_path_factory):
             url = f"http://localhost:{port}"
             command = f"-scheme http -public-host {url} -external-url {url}"
             container = docker_client.containers.run(
-                f"{fake_gcs_image}:{fake_gcs_tag}",
+                "fsouza/fake-gcs-server:1.38.0",  # renovate
                 name=container_name,
                 command=command,
                 stdout=True,
