@@ -1,0 +1,23 @@
+{
+  "extends": ["group:all", ":dependencyDashboard"],
+  "enabledManagers": ["regex"],
+  "includeForks": true,
+  "regexManagers": [
+    {
+      "fileMatch": ["^src/pytest_servers/gcs.py$"],
+      "matchStrings": [
+        "fake_gcs_image = \"(?<depName>.*?)\"\\s*#",
+        "fake_gcs_tag = \"(?<currentValue>.*?)\"\\s*#"
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "fileMatch": ["^src/pytest_servers/azure.py$"],
+      "matchStrings": [
+        "azurite_image = \"(?<depName>.*?)\"\\s*#",
+        "azurite_tag = \"(?<currentValue>.*?)\"\\s*#"
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ]
+}
