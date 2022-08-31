@@ -21,7 +21,10 @@ def azurite(docker_client, tmp_path_factory):
     """Spins up an azurite container. Returns the connection string."""
     from docker.errors import NotFound
 
+    azurite_image = "mcr.microsoft.com/azure-storage/azurite"
+    azurite_tag = "3.18.0"
     container_name = "pytest-servers-azurite"
+
     root_tmp_dir = tmp_path_factory.getbasetemp().parent
     azurite_lock = root_tmp_dir / "azurite.lock"
 
@@ -33,7 +36,7 @@ def azurite(docker_client, tmp_path_factory):
             container = None
         except NotFound:
             container = docker_client.containers.run(
-                "mcr.microsoft.com/azure-storage/azurite",
+                f"{azurite_image}:{azurite_tag}",
                 command="azurite-blob --loose --blobHost 0.0.0.0",
                 name=container_name,
                 stdout=True,
