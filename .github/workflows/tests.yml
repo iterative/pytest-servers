@@ -8,6 +8,7 @@ on:
 
 env:
   FORCE_COLOR: "1"
+  AIOHTTP_NO_EXTENSIONS: 1
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -44,11 +45,9 @@ jobs:
         nox --version
 
     - name: Lint code and check dependencies
-      continue-on-error: ${{ matrix.nox_pyv == '3.11' }}
       run: nox -s lint safety
 
     - name: Run tests
-      continue-on-error: ${{ matrix.nox_pyv == '3.11' }}
       run: nox -s tests-${{ matrix.nox_pyv || matrix.pyv }}
       env:
         COVERAGE_XML: true
