@@ -163,7 +163,7 @@ class TempUPathFactory:
             connection_string=connection_string,
             **kwargs,
         )
-        path.mkdir()
+        path.mkdir(parents=True, exist_ok=False)
         return path
 
     def memory(self, **kwargs) -> UPath:
