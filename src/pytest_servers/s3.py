@@ -27,7 +27,7 @@ class MockedS3Server:
         """Starts moto s3 on a random port"""
         try:
             # should fail since we didn't start server yet
-            r = requests.get(self.endpoint_url)
+            r = requests.get(self.endpoint_url, timeout=5)
         except:  # noqa: E722, B001 # pylint: disable=bare-except
             pass
         else:
