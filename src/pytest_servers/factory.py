@@ -187,5 +187,11 @@ class TempUPathFactory:
 
         bucket_name = f"pytest-servers-{random_string()}"
         path = UPath(f"gcs://{bucket_name}", **client_kwargs, **kwargs)
-        path.mkdir()
+        path.mkdir(parents=True, exist_ok=False)
+
+        # UPath adds a trailing slash here, due to which
+        # gcsfs.isdir() returns False.
+        # pylint: disable=protected-access,assigning-non-slot
+        original = path._accessor._format_path
+        path._accessor._format_path = lambda p: original(p).rstrip("/")
         return path
