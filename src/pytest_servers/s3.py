@@ -40,8 +40,17 @@ class MockedS3Server:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        out = self.proc.stderr.readline()
-        self.port = int(re.match(b".*http://127.0.0.1:(\\d+).*", out).group(1))
+        outs = []
+        for _ in range(2):
+            # Depending on the Flask version, the URL is shown on the
+            # 1st or 2nd line
+            outs.append(self.proc.stderr.readline())
+            m = re.match(b".*http://127.0.0.1:(\\d+).*", outs[-1])
+            if m:
+                self.port = int(m.group(1))
+                break
+        else:
+            raise RuntimeError(f"Couldn't find moto server port in {outs}")
         wait_until(lambda: requests.get(self.endpoint_url, timeout=5).ok, 5)
 
         return self
