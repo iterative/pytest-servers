@@ -42,7 +42,8 @@ class MockedS3Server:
         )
         outs = []
         for _ in range(2):
-            # Depending on the Flask version, the URL is shown on the 1st or 2nd line
+            # Depending on the Flask version, the URL is shown on the
+            # 1st or 2nd line
             outs.append(self.proc.stderr.readline())
             m = re.match(b".*http://127.0.0.1:(\\d+).*", outs[-1])
             if m:
