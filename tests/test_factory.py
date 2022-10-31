@@ -34,7 +34,7 @@ implementations = [
 @pytest.mark.parametrize(
     "fs,cls",
     implementations,
-    ids=(param.values[0] for param in implementations),  # type: ignore
+    ids=[param.values[0] for param in implementations],  # type: ignore
 )
 class TestTmpUPathFactory:
     def test_init(self, tmp_upath_factory, fs, cls):
