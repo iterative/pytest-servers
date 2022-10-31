@@ -32,6 +32,8 @@ addopts = "-ra -n=auto"
 
 [tool.coverage.run]
 branch = true
+parallel = true
+concurrency = ["multiprocessing", "thread"]
 source = ["pytest_servers", "tests"]
 
 [tool.coverage.paths]
