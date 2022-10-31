@@ -1,6 +1,7 @@
 """Automation using nox."""
 import glob
 import os
+from pathlib import Path
 
 import nox
 
@@ -12,14 +13,17 @@ nox.options.sessions = "lint", "tests"
 def tests(session: nox.Session) -> None:
     session.install(".[dev]")
 
+    env = {
+        "COVERAGE_FILE": f".coverage.{session.python}",
+        "COVERAGE_PROCESS_START": os.fspath(Path.cwd() / "pyproject.toml"),
+    }
     # pytest loads plugin before the test is run, so we have to start coverage
     # before pytest loads.
-    coverage_file = f".coverage.{session.python}"
-    cov_args = "--rcfile", "pyproject.toml", "--data-file", coverage_file
-    session.run("coverage", "run", *cov_args, "-m", "pytest", *session.posargs)
-    session.run("coverage", "report", *cov_args)
+    session.run("coverage", "run", "-m", "pytest", *session.posargs, env=env)
+    session.run("coverage", "combine", env=env)
+    session.run("coverage", "report", env=env)
     if os.getenv("COVERAGE_XML"):
-        session.run("coverage", "xml", *cov_args, "-o", "coverage.xml")
+        session.run("coverage", "xml", "-o", "coverage.xml", env=env)
 
 
 @nox.session
