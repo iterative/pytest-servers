@@ -1,3 +1,4 @@
+import os
 import re
 import shlex
 import subprocess
@@ -33,12 +34,17 @@ class MockedS3Server:
         else:
             if r.ok:
                 raise RuntimeError("moto server already up")
+
+        # Making sure random warnings don't mess up our stderr parsing.
+        env = {**os.environ, "PYTHONWARNINGS": "ignore"}
+
         self.proc = subprocess.Popen(
             shlex.split(
                 "moto_server s3 -p 0",  # get a random port
             ),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            env=env,
         )
         outs = []
         for _ in range(2):
