@@ -30,7 +30,7 @@ def wait_until(pred, timeout: float, pause: float = 0.1):
 
 
 def random_string(n: int = 6):
-    return "".join(random.choices(string.ascii_lowercase, k=n))
+    return "".join(random.choices(string.ascii_lowercase, k=n))  # nosec B311
 
 
 @pytest.fixture(scope="session")
