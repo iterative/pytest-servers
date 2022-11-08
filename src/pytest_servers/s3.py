@@ -1,7 +1,7 @@
 import os
 import re
 import shlex
-import subprocess
+import subprocess  # nosec B404
 
 import pytest
 import requests
@@ -29,7 +29,7 @@ class MockedS3Server:
         try:
             # should fail since we didn't start server yet
             r = requests.get(self.endpoint_url, timeout=5)
-        except:  # noqa: E722, B001 # pylint: disable=bare-except
+        except:  # noqa: E722, B001 # nosec B110 # pylint: disable=bare-except
             pass
         else:
             if r.ok:
@@ -38,7 +38,7 @@ class MockedS3Server:
         # Making sure random warnings don't mess up our stderr parsing.
         env = {**os.environ, "PYTHONWARNINGS": "ignore"}
 
-        self.proc = subprocess.Popen(
+        self.proc = subprocess.Popen(  # nosec B603
             shlex.split(
                 "moto_server s3 -p 0",  # get a random port
             ),
