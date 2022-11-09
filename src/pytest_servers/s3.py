@@ -1,76 +1,30 @@
-import os
-import re
-import shlex
-import subprocess  # nosec B404
-
 import pytest
-import requests
-
-from .utils import wait_until
+from moto.server import ThreadedMotoServer
 
 
-class MockedS3Server:
-    def __init__(self):
-        self.port = None
-        self.proc = None
+class MockedS3Server(ThreadedMotoServer):
+    def __init__(
+        self,
+        ip_address: str = "localhost",
+        port: int = 0,
+        verbose: bool = True,
+    ):
+        super().__init__(ip_address, port=port, verbose=verbose)
 
     @property
     def endpoint_url(self):
-        if self.port is None:
-            raise ValueError("start() must be called first.")
-        return f"http://localhost:{self.port}"
+        return f"http://{self._server.host}:{self.port}"
+
+    @property
+    def port(self):
+        return self._server.port
 
     def __enter__(self):
         self.start()
         return self
 
-    def start(self):
-        """Starts moto s3 on a random port"""
-        try:
-            # should fail since we didn't start server yet
-            r = requests.get(self.endpoint_url, timeout=5)
-        except:  # noqa: E722, B001 # nosec B110 # pylint: disable=bare-except
-            pass
-        else:
-            if r.ok:
-                raise RuntimeError("moto server already up")
-
-        # Making sure random warnings don't mess up our stderr parsing.
-        env = {**os.environ, "PYTHONWARNINGS": "ignore"}
-
-        self.proc = subprocess.Popen(  # nosec B603
-            shlex.split(
-                "moto_server s3 -p 0",  # get a random port
-            ),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            env=env,
-        )
-        outs = []
-        for _ in range(2):
-            # Depending on the Flask version, the URL is shown on the
-            # 1st or 2nd line
-            outs.append(self.proc.stderr.readline())
-            m = re.match(b".*http://127.0.0.1:(\\d+).*", outs[-1])
-            if m:
-                self.port = int(m.group(1))
-                break
-        else:
-            raise RuntimeError(f"Couldn't find moto server port in {outs}")
-        wait_until(lambda: requests.get(self.endpoint_url, timeout=5).ok, 5)
-
-        return self
-
-    def close(self, *args):
-        if self.proc is not None:
-            self.proc.terminate()
-            self.proc.wait()
-            self.proc.__exit__(*args)
-
-        self.proc = None
-
     def __exit__(self, *exc_args):
-        self.close(*exc_args)
+        self.stop()
 
 
 @pytest.fixture(scope="session")
@@ -104,9 +58,17 @@ def s3_fake_creds_file(monkeypatch_session):
 
 
 @pytest.fixture(scope="session")
+def s3_server_config():
+    """Override to change default config of the server."""
+    return {}
+
+
+@pytest.fixture(scope="session")
 def s3_server(
+    s3_server_config,  # pylint: disable=redefined-outer-name
     s3_fake_creds_file,  # pylint: disable=unused-argument,redefined-outer-name
 ):
     """Spins up a moto s3 server. Returns the endpoint URL."""
-    with MockedS3Server() as server:
+    assert isinstance(s3_server_config, dict)
+    with MockedS3Server(**s3_server_config) as server:
         yield server.endpoint_url
