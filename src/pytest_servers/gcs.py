@@ -35,7 +35,10 @@ def fake_gcs_server(docker_client, tmp_path_factory):
             container = None
         except NotFound:
             url = f"http://localhost:{port}"
-            command = f"-scheme http -public-host {url} -external-url {url}"
+            command = (
+                "-backend memory -scheme http "
+                f"-public-host {url} -external-url {url} "
+            )
             container = docker_client.containers.run(
                 "fsouza/fake-gcs-server:1.42.2",  # renovate
                 name=container_name,
