@@ -5,7 +5,7 @@ import pytest
 
 from .azure import azurite  # noqa: F401
 from .factory import TempUPathFactory
-from .gcs import fake_gcs_server  # noqa: F401
+from .gcs import fake_gcs_creds, fake_gcs_server  # noqa: F401
 from .s3 import (  # noqa: F401
     MockedS3Server,
     s3_fake_creds_file,
