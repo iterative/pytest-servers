@@ -1,3 +1,4 @@
+import json
 import logging
 
 import pytest
@@ -12,7 +13,31 @@ GCS_DEFAULT_PORT = 4443
 
 
 @pytest.fixture(scope="session")
-def fake_gcs_server(docker_client, tmp_path_factory):
+def fake_gcs_creds(monkeypatch_session, tmp_path_factory):
+    tmp_path = tmp_path_factory.getbasetemp() / "fake_gcs_creds.json"
+
+    fake_creds = {
+        "type": "service_account",
+        "private_key_id": "dummy key id",
+        "private_key": "dummy key",
+        "client_email": "dummy@dummy.iam.gserviceaccount.com",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+    }
+
+    with open(tmp_path, "w", encoding="utf-8") as fobj:
+        json.dump(fake_creds, fobj)
+    with monkeypatch_session.context() as m:
+        m.setenv("GOOGLE_APPLICATION_CREDENTIALS", str(tmp_path))
+        yield tmp_path
+
+
+@pytest.fixture(scope="session")
+def fake_gcs_server(
+    docker_client,
+    tmp_path_factory,
+    fake_gcs_creds,  # pylint: disable=redefined-outer-name,unused-argument
+):
     """Spins up a fake-gcs-server container. Returns the endpoint URL."""
     from docker.errors import NotFound
 
