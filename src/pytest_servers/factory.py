@@ -184,7 +184,6 @@ class TempUPathFactory:
         client_kwargs = {}
         if endpoint_url:
             client_kwargs["endpoint_url"] = endpoint_url
-            client_kwargs["token"] = "anon"  # nosec
 
         bucket_name = f"pytest-servers-{random_string()}"
         path = UPath(f"gcs://{bucket_name}", **client_kwargs, **kwargs)
