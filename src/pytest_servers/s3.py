@@ -1,30 +1,34 @@
 import pytest
-from moto.server import ThreadedMotoServer
 
 
-class MockedS3Server(ThreadedMotoServer):
+class MockedS3Server:
     def __init__(
         self,
         ip_address: str = "localhost",
         port: int = 0,
         verbose: bool = True,
     ):
-        super().__init__(ip_address, port=port, verbose=verbose)
+        from moto.server import ThreadedMotoServer
+
+        self._server = ThreadedMotoServer(
+            ip_address, port=port, verbose=verbose
+        )
 
     @property
     def endpoint_url(self):
-        return f"http://{self._server.host}:{self.port}"
+        # pylint: disable-next=protected-access
+        return f"http://{self._server._server.host}:{self.port}"
 
     @property
     def port(self):
-        return self._server.port
+        return self._server._server.port  # pylint: disable=protected-access
 
     def __enter__(self):
-        self.start()
+        self._server.start()
         return self
 
     def __exit__(self, *exc_args):
-        self.stop()
+        self._server.stop()
 
 
 @pytest.fixture(scope="session")
