@@ -18,9 +18,14 @@ if TYPE_CHECKING:
     from pytest import FixtureRequest
 
 
+def _version_aware(request: "FixtureRequest") -> bool:
+    return "versioning" in request.fixturenames
+
+
 @pytest.fixture
-def aws_region_name():
-    return "eu-west-1"
+def versioning():
+    """Enables versioning for supported remotes."""
+    yield
 
 
 @pytest.fixture(scope="session")
@@ -30,9 +35,9 @@ def tmp_upath_factory(request: "FixtureRequest"):
 
 
 @pytest.fixture
-def tmp_s3_path(tmp_upath_factory):
+def tmp_s3_path(tmp_upath_factory, request):
     """Temporary path on a mocked S3 remote."""
-    yield tmp_upath_factory.mktemp("s3")
+    yield tmp_upath_factory.mktemp("s3", version_aware=_version_aware(request))
 
 
 @pytest.fixture
@@ -56,9 +61,11 @@ def tmp_memory_path(tmp_upath_factory):
 
 
 @pytest.fixture
-def tmp_gcs_path(tmp_upath_factory):
+def tmp_gcs_path(tmp_upath_factory, request):
     """Return a temporary path."""
-    yield tmp_upath_factory.mktemp("gcs")
+    yield tmp_upath_factory.mktemp(
+        "gcs", version_aware=_version_aware(request)
+    )
 
 
 @pytest.fixture
@@ -74,14 +81,17 @@ def tmp_upath(
     >>>     pass
     """
     param = getattr(request, "param", "local")
+    version_aware = _version_aware(request)
+    if version_aware and param not in ("gcs", "s3"):
+        raise NotImplementedError(f"Versioning is not supported for {param}")
     if param == "local":
         return tmp_upath_factory.mktemp()
     elif param == "memory":
         return tmp_upath_factory.mktemp("memory")
     elif param == "s3":
-        return tmp_upath_factory.mktemp("s3")
+        return tmp_upath_factory.mktemp("s3", version_aware=version_aware)
     elif param == "azure":
         return tmp_upath_factory.mktemp("azure")
     elif param == "gcs":
-        return tmp_upath_factory.mktemp("gcs")
+        return tmp_upath_factory.mktemp("gcs", version_aware=version_aware)
     raise ValueError(f"unknown {param=}")

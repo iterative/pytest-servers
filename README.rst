@@ -120,6 +120,20 @@ In order to use real remotes instead of mocked ones, use `tmp_upath_factory` wit
 - ``tmp_upath_factory.azure(connection_string)``
 
 
+Versioning support can be used by using the `versioning` fixture. This is currently supported for s3 and gcs remotes
+
+.. code:: python
+
+   # using mktemp
+   def test_something_on_s3_versioned(tmp_upath_factory):
+       path = tmp_upath_factory.mktemp("s3", version_aware=True)
+       assert path.fs.version_aware # bucket has versioning enabled
+
+   # or, using remote-specific fixtures
+   def test_something_on_s3_versioned(tmp_s3_path, versioning):
+       assert tmp_s3_path.fs.version_aware # bucket has versioning enabled
+
+
 Contributing
 ------------
 
