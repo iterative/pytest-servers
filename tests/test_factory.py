@@ -31,6 +31,11 @@ implementations = [
 ]
 
 
+with_versioning = [
+    param for param in implementations if param.values[0] in ("s3", "gcs")
+]
+
+
 @pytest.mark.parametrize(
     "fs,cls",
     implementations,
@@ -56,3 +61,14 @@ class TestTmpUPathFactory:
         path_1 = tmp_upath_factory.mktemp(fs)
         path_2 = tmp_upath_factory.mktemp(fs)
         assert str(path_1) != str(path_2)
+
+
+@pytest.mark.parametrize(
+    "fs,cls",
+    with_versioning,
+    ids=[param.values[0] for param in with_versioning],  # type: ignore
+)
+class TestTmpUPathFactoryVersioning:
+    def test_mktemp(self, tmp_upath_factory, fs, cls):
+        path = tmp_upath_factory.mktemp(fs, version_aware=True)
+        assert path.fs.version_aware

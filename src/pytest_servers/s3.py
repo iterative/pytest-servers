@@ -55,6 +55,7 @@ def s3_fake_creds_file(monkeypatch_session):
             m.setenv("AWS_SECRET_ACCESS_KEY", "pytest-servers")
             m.setenv("AWS_SECURITY_TOKEN", "pytest-servers")
             m.setenv("AWS_SESSION_TOKEN", "pytest-servers")
+            m.setenv("AWS_DEFAULT_REGION", "us-east-1")
             yield
     finally:
         if aws_creds.exists() and not initially_exists:

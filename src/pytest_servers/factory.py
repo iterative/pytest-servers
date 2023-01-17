@@ -1,7 +1,7 @@
 import os
 import sys
 import tempfile
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import pytest
 from upath import UPath
@@ -82,7 +82,11 @@ class TempUPathFactory:
         setattr(self, remote_config_name, remote_config)
 
     def mktemp(
-        self, fs: str = "local", mock: bool = True, **kwargs
+        self,
+        fs: str = "local",
+        mock: bool = True,
+        version_aware: bool = False,
+        **kwargs,
     ) -> "UPath":
         """Create a new temporary directory managed by the factory.
 
@@ -101,8 +105,12 @@ class TempUPathFactory:
             :class:`upath.Upath` to the new directory.
         """
         if fs == "local":
+            if version_aware:
+                raise NotImplementedError(f"not implemented for {fs=}")
             return self.local()
         elif fs == "memory":
+            if version_aware:
+                raise NotImplementedError(f"not implemented for {fs=}")
             return self.memory(**kwargs)
 
         if mock:
@@ -110,11 +118,13 @@ class TempUPathFactory:
 
         if fs == "s3":
             return self.s3(
-                region_name="eu-south-1",
                 endpoint_url=self._s3_endpoint_url,
+                version_aware=version_aware,
                 **kwargs,
             )
         elif fs == "azure":
+            if version_aware and mock:
+                raise NotImplementedError(f"not implemented for {fs=}")
             if not self._azure_connection_string:
                 raise RemoteUnavailable("missing connection string")
             return self.azure(
@@ -123,6 +133,7 @@ class TempUPathFactory:
         elif fs == "gcs":
             return self.gcs(
                 endpoint_url=self._gcs_endpoint_url,
+                version_aware=version_aware,
                 **kwargs,
             )
         else:
@@ -137,22 +148,39 @@ class TempUPathFactory:
         return LocalPath(mktemp("pytest-servers"))
 
     def s3(
-        self, region_name: str, endpoint_url: Optional[str] = None, **kwargs
+        self,
+        endpoint_url: Optional[str] = None,
+        version_aware: bool = False,
+        **kwargs,
     ) -> UPath:
         """Creates a new S3 bucket and returns an UPath instance  .
 
         `endpoint_url` can be used to use custom servers (e.g. moto s3)."""
-        client_kwargs = {}
+        client_kwargs: Dict[str, Any] = {}
         if endpoint_url:
             client_kwargs["endpoint_url"] = endpoint_url
-        if region_name:
-            client_kwargs["region_name"] = region_name
 
         bucket_name = f"pytest-servers-{random_string()}"
         path = UPath(
-            f"s3://{bucket_name}", client_kwargs=client_kwargs, **kwargs
+            f"s3://{bucket_name}",
+            client_kwargs=client_kwargs,
+            version_aware=version_aware,
+            **kwargs,
         )
-        path.mkdir()
+        if version_aware:
+            from botocore.session import Session
+
+            session = Session()
+            client = session.create_client("s3", endpoint_url=endpoint_url)
+            client.create_bucket(Bucket=bucket_name, ACL="public-read")
+
+            client.put_bucket_versioning(
+                Bucket=bucket_name,
+                VersioningConfiguration={"Status": "Enabled"},
+            )
+        else:
+            path.mkdir()
+
         return path
 
     def azure(self, connection_string: str, **kwargs) -> UPath:
@@ -175,19 +203,33 @@ class TempUPathFactory:
         path.mkdir()
         return path
 
-    def gcs(self, endpoint_url: Optional[str] = None, **kwargs) -> UPath:
+    def gcs(
+        self,
+        endpoint_url: Optional[str] = None,
+        version_aware: bool = False,
+        **kwargs,
+    ) -> UPath:
         """Creates a new gcs bucket and returns an UPath instance.
 
         `endpoint_url` can be used to use custom servers
         (e.g. fake-gcs-server).
         """
-        client_kwargs = {}
+        client_kwargs: Dict[str, Any] = {}
         if endpoint_url:
             client_kwargs["endpoint_url"] = endpoint_url
 
         bucket_name = f"pytest-servers-{random_string()}"
-        path = UPath(f"gcs://{bucket_name}", **client_kwargs, **kwargs)
-        path.mkdir(parents=True, exist_ok=False)
+
+        path = UPath(
+            f"gcs://{bucket_name}",
+            version_aware=version_aware,
+            **client_kwargs,
+            **kwargs,
+        )
+        if version_aware:
+            path.fs.mkdir(bucket_name, enable_versioning=True, exist_ok=False)
+        else:
+            path.mkdir(parents=True, exist_ok=False)
 
         # UPath adds a trailing slash here, due to which
         # gcsfs.isdir() returns False.
