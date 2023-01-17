@@ -45,8 +45,7 @@ class TestTmpUPathFactory:
     def test_init(self, tmp_upath_factory, fs, cls):
         path = tmp_upath_factory.mktemp(fs)
         assert isinstance(path, cls)
-        if fs != "gcs":  # for empty buckets on gcs path.exists() == False
-            assert path.exists()
+        assert path.exists()
 
     def test_is_empty(self, tmp_upath_factory, fs, cls):
         path = tmp_upath_factory.mktemp(fs)
