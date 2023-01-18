@@ -3,17 +3,22 @@ import random
 import socket
 import string
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, TypeVar
 
 import pytest
 
 if TYPE_CHECKING:
     from docker.models.containers import Container
 
+
 logger = logging.getLogger(__name__)
 
+_T = TypeVar("_T")
 
-def wait_until(pred, timeout: float, pause: float = 0.1):
+
+def wait_until(
+    pred: Callable[..., _T], timeout: float, pause: float = 0.1
+) -> _T:
     start = time.perf_counter()
     exc = None
     while (time.perf_counter() - start) < timeout:
@@ -22,14 +27,13 @@ def wait_until(pred, timeout: float, pause: float = 0.1):
         except Exception as e:  # pylint: disable=broad-except
             exc = e
         else:
-            if value:
-                return value
+            return value
         time.sleep(pause)
 
     raise TimeoutError("timed out waiting") from exc
 
 
-def random_string(n: int = 6):
+def random_string(n: int = 6) -> str:
     return "".join(random.choices(string.ascii_lowercase, k=n))  # nosec B311
 
 
@@ -57,7 +61,7 @@ def docker_client():
 
 def wait_until_running(
     container: "Container", timeout: int = 30, pause: float = 0.5
-):
+) -> None:
     def check():
         container.reload()
         return container.status == "running"
@@ -65,7 +69,7 @@ def wait_until_running(
     wait_until(check, timeout=timeout, pause=pause)
 
 
-def get_free_port() -> None:
+def get_free_port() -> int:  # type: ignore[return]
     retries = 3
     while retries >= 0:
         try:
