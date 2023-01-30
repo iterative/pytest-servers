@@ -16,9 +16,7 @@ logger = logging.getLogger(__name__)
 _T = TypeVar("_T")
 
 
-def wait_until(
-    pred: Callable[..., _T], timeout: float, pause: float = 0.1
-) -> _T:
+def wait_until(pred: Callable[..., _T], timeout: float, pause: float = 0.1) -> _T:
     start = time.perf_counter()
     exc = None
     while (time.perf_counter() - start) < timeout:

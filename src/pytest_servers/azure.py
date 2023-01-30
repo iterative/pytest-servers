@@ -28,9 +28,7 @@ def azurite(docker_client, tmp_path_factory):
 
     with FileLock(azurite_lock):
         try:
-            port = docker_client.api.port(container_name, AZURITE_PORT)[0][
-                "HostPort"
-            ]
+            port = docker_client.api.port(container_name, AZURITE_PORT)[0]["HostPort"]
             container = None
         except NotFound:
             container = docker_client.containers.run(
@@ -43,9 +41,7 @@ def azurite(docker_client, tmp_path_factory):
                 remove=True,
                 ports={f"{AZURITE_PORT}/tcp": None},  # assign a random port
             )
-            port = docker_client.api.port(container_name, AZURITE_PORT)[0][
-                "HostPort"
-            ]
+            port = docker_client.api.port(container_name, AZURITE_PORT)[0]["HostPort"]
             wait_until_running(container)
 
     def is_healthy():

@@ -64,6 +64,4 @@ def dev(session: nox.Session) -> None:
     session.run("virtualenv", venv_dir, silent=True)
 
     python = os.path.join(venv_dir, "bin/python")
-    session.run(
-        python, "-m", "pip", "install", "-e", ".[all,dev]", external=True
-    )
+    session.run(python, "-m", "pip", "install", "-e", ".[all,dev]", external=True)
