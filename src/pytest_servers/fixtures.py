@@ -63,9 +63,7 @@ def tmp_memory_path(tmp_upath_factory):
 @pytest.fixture
 def tmp_gcs_path(tmp_upath_factory, request):
     """Return a temporary path."""
-    yield tmp_upath_factory.mktemp(
-        "gcs", version_aware=_version_aware(request)
-    )
+    yield tmp_upath_factory.mktemp("gcs", version_aware=_version_aware(request))
 
 
 @pytest.fixture

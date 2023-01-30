@@ -40,8 +40,8 @@ class TempUPathFactory:
     ) -> "TempUPathFactory":
         """Create a factory according to pytest configuration."""
         tmp_upath_factory = cls(*args, **kwargs)
-        tmp_upath_factory._local_path_factory = (
-            pytest.TempPathFactory.from_config(request.config, _ispytest=True)
+        tmp_upath_factory._local_path_factory = pytest.TempPathFactory.from_config(
+            request.config, _ispytest=True
         )
         tmp_upath_factory._request = request
 
@@ -127,9 +127,7 @@ class TempUPathFactory:
                 raise NotImplementedError(f"not implemented for {fs=}")
             if not self._azure_connection_string:
                 raise RemoteUnavailable("missing connection string")
-            return self.azure(
-                connection_string=self._azure_connection_string, **kwargs
-            )
+            return self.azure(connection_string=self._azure_connection_string, **kwargs)
         elif fs == "gcs":
             return self.gcs(
                 endpoint_url=self._gcs_endpoint_url,

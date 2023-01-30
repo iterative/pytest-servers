@@ -10,9 +10,7 @@ class MockedS3Server:
     ):
         from moto.server import ThreadedMotoServer
 
-        self._server = ThreadedMotoServer(
-            ip_address, port=port, verbose=verbose
-        )
+        self._server = ThreadedMotoServer(ip_address, port=port, verbose=verbose)
 
     @property
     def endpoint_url(self):
