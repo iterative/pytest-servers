@@ -4,7 +4,7 @@ import pytest
 class MockedS3Server:
     def __init__(
         self,
-        ip_address: str = "localhost",
+        ip_address: str = "127.0.0.1",
         port: int = 0,
         verbose: bool = True,
     ):
