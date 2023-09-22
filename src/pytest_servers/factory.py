@@ -66,11 +66,6 @@ class TempUPathFactory:
                     "disabled for Windows on Github Actions: "
                     "https://github.com/actions/runner-images/issues/1143"
                 )
-            elif sys.platform == "darwin":
-                pytest.skip(
-                    "disabled for MacOS on Github Actions: "
-                    "https://github.com/actions/runner-images/issues/2150"
-                )
 
         assert self._request
         try:
