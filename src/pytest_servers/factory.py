@@ -187,6 +187,9 @@ class TempUPathFactory:
         path = UPath(
             f"az://{container_name}",
             connection_string=connection_string,
+            # To actually get an error instead of a false-positive
+            # "Container exists", see https://github.com/fsspec/adlfs/pull/415
+            assume_container_exists=False,
             **kwargs,
         )
         path.mkdir(parents=True, exist_ok=False)
