@@ -32,7 +32,7 @@ def azurite(docker_client, tmp_path_factory):
             container = None
         except NotFound:
             container = docker_client.containers.run(
-                "mcr.microsoft.com/azure-storage/azurite:3.26.0",  # renovate
+                "mcr.microsoft.com/azure-storage/azurite:3.27.0",  # renovate
                 command="azurite-blob --loose --blobHost 0.0.0.0",
                 name=container_name,
                 stdout=True,
