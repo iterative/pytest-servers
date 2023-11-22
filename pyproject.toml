@@ -4,28 +4,73 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 
-[tool.black]
-line-length = 88
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
+[project]
+name = "pytest-servers"
+description = "pytest servers"
+readme = "README.rst"
+license = {text = "Apache-2.0"}
+authors = [{ name = "Iterative", email = "support@dvc.org" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Development Status :: 3 - Alpha",
+    "Framework :: Pytest",
+    "Intended Audience :: Developers",
+]
+requires-python = ">=3.8"
+dynamic = ["version"]
+dependencies = [
+    "pytest>=6.2",
+    "requests",
+    "fsspec",
+    "universal-pathlib==0.0.21",
+    "filelock>=3.3.2",
+]
 
-[tool.isort]
-profile = "black"
-known_first_party = ["pytest_servers"]
-line_length = 88
+[project.entry-points.pytest11]
+pytest-servers = "pytest_servers.fixtures"
+
+[project.urls]
+Issues = "https://github.com/iterative/pytest-servers/issues"
+Source = "https://github.com/iterative/pytest-servers"
+
+[project.optional-dependencies]
+docker = ["docker>6"]
+s3 = [
+    "moto[server]>=4",
+    "s3fs[boto3]>=2022.02.0",
+    "botocore>=1.31.17", # Temporary: explicitly define this to avoid pip backtracking while installing moto[server]
+]
+azure = [
+    "adlfs>=2022.02.22",
+    "pytest-servers[docker]",
+]
+gcs = [
+    "gcsfs>=2022.02.22",
+    "pytest-servers[docker]",
+]
+all = ["pytest-servers[s3,azure,gcs]"]
+tests = [
+    # see https://github.com/nedbat/coveragepy/issues/1341#issuecomment-1228942657
+    "coverage-enable-subprocess",
+    "coverage[toml]>6",
+    "pytest-sugar==0.9.6",
+    "pytest-xdist==3.0.2",
+    "pylint==2.15.3",
+    "mypy==0.961",
+    "types-requests",
+]
+dev = [
+    "pytest-servers[all]",
+    "pytest-servers[tests]",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false
 
 [tool.pytest.ini_options]
 addopts = "-ra -n=auto"
@@ -66,28 +111,5 @@ warn_unreachable = true
 ignore_missing_imports = true
 files = ["src", "tests"]
 
-[tool.pylint.format]
-max-line-length = 88
-
-[tool.pylint.message_control]
-enable = ["c-extension-no-member", "no-else-return"]
-disable = [
-    "format", "refactoring", "spelling", "design",
-    "invalid-name", "duplicate-code", "fixme",
-    "unused-wildcard-import", "cyclic-import", "wrong-import-order",
-    "wrong-import-position", "ungrouped-imports", "multiple-imports",
-    "logging-format-interpolation", "logging-fstring-interpolation",
-    "missing-function-docstring", "missing-module-docstring",
-    "missing-class-docstring", "raise-missing-from", "import-outside-toplevel",
-]
-
-[tool.pylint.variables]
-dummy-variables-rgx = "_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_"
-ignored-argument-names = "_.*|^ignored_|^unused_|args|kwargs"
-
 [tool.codespell]
 ignore-words-list = " "
-
-[tool.bandit]
-exclude_dirs = ["tests"]
-skips = ["B101"]
