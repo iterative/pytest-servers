@@ -26,7 +26,7 @@ dependencies = [
     "pytest>=6.2",
     "requests",
     "fsspec",
-    "universal-pathlib==0.0.21",
+    "universal-pathlib==0.1.4",
     "filelock>=3.3.2",
 ]
 
