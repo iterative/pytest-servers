@@ -91,9 +91,13 @@ class TempUPathFactory:
         assert self._request
         try:
             remote_config = self._request.getfixturevalue(mock_remote_fixture)
-        except pytest.FixtureLookupError:
-            msg = f'{fs}: Failed to setup "{mock_remote_fixture}" fixture'
+        except Exception as exc:  # noqa: BLE001
+            msg = f'{fs}: Failed to setup "{mock_remote_fixture}": {exc}'
+            if self._request.config.option.verbose >= 1:
+                raise RemoteUnavailable(msg) from exc
+
             raise RemoteUnavailable(msg) from None
+
         setattr(self, remote_config_name, remote_config)
 
     def mktemp(  # noqa: C901 # complex-structure
