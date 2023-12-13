@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 
@@ -6,6 +8,7 @@ class MockedS3Server:
         self,
         ip_address: str = "127.0.0.1",
         port: int = 0,
+        *,
         verbose: bool = True,
     ):
         from moto.server import ThreadedMotoServer
@@ -13,13 +16,18 @@ class MockedS3Server:
         self._server = ThreadedMotoServer(ip_address, port=port, verbose=verbose)
 
     @property
-    def endpoint_url(self):
-        # pylint: disable-next=protected-access
-        return f"http://{self._server._server.host}:{self.port}"
+    def endpoint_url(self) -> str:
+        return f"http://{self.ip_address}:{self.port}"
 
     @property
-    def port(self):
-        return self._server._server.port  # pylint: disable=protected-access
+    def port(self) -> int:
+        # grab the port from the _server attribute, which has the bound port
+        assert self._server._server  # noqa: SLF001
+        return self._server._server.port  # noqa: SLF001
+
+    @property
+    def ip_address(self) -> str:
+        return self._server._ip_address  # noqa: SLF001
 
     def __enter__(self):
         self._server.start()
@@ -30,7 +38,7 @@ class MockedS3Server:
 
 
 @pytest.fixture(scope="session")
-def s3_fake_creds_file(monkeypatch_session):
+def s3_fake_creds_file(monkeypatch_session: pytest.MonkeyPatch) -> None:  # type: ignore[misc]
     # https://github.com/spulec/moto#other-caveats
     import pathlib
 
@@ -61,16 +69,16 @@ def s3_fake_creds_file(monkeypatch_session):
 
 
 @pytest.fixture(scope="session")
-def s3_server_config():
+def s3_server_config() -> dict:
     """Override to change default config of the server."""
     return {}
 
 
 @pytest.fixture(scope="session")
-def s3_server(
-    s3_server_config,  # pylint: disable=redefined-outer-name
-    s3_fake_creds_file,  # pylint: disable=unused-argument,redefined-outer-name
-):
+def s3_server(  # type: ignore[misc]
+    s3_server_config: dict,
+    s3_fake_creds_file: None,  # noqa: ARG001
+) -> str:
     """Spins up a moto s3 server. Returns the endpoint URL."""
     assert isinstance(s3_server_config, dict)
     with MockedS3Server(**s3_server_config) as server:

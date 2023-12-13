@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import os
 import sys
 import tempfile
-from typing import Any, Dict, Optional
+from typing import Any, ClassVar
 
 import pytest
 from upath import UPath
@@ -10,44 +12,63 @@ from pytest_servers.exceptions import RemoteUnavailable
 from pytest_servers.local import LocalPath
 from pytest_servers.utils import random_string
 
+from .utils import MockRemote
+
 
 class TempUPathFactory:
-    """Factory for temporary directories with universal-pathlib and mocked servers"""  # noqa: E501
+    """Factory for temporary directories with universal-pathlib and mocked servers."""
 
-    mock_remotes = {
-        # remote: (fixture_name, config attribute name, requires docker)
-        "azure": ("azurite", "_azure_connection_string", True),
-        "gcs": ("fake_gcs_server", "_gcs_endpoint_url", True),
-        "s3": ("s3_server", "_s3_endpoint_url", False),
+    mock_remotes: ClassVar[dict[str, MockRemote]] = {
+        "azure": MockRemote(
+            "azurite",
+            "_azure_connection_string",
+            requires_docker=True,
+        ),
+        "gcs": MockRemote(
+            "fake_gcs_server",
+            "_gcs_endpoint_url",
+            requires_docker=True,
+        ),
+        "s3": MockRemote(
+            "s3_server",
+            "_s3_endpoint_url",
+            requires_docker=False,
+        ),
     }
 
     def __init__(
         self,
-        s3_endpoint_url: Optional[str] = None,
-        azure_connection_string: Optional[str] = None,
-        gcs_endpoint_url: Optional[str] = None,
-    ):
-        self._request: Optional["pytest.FixtureRequest"] = None
+        s3_endpoint_url: str | None = None,
+        azure_connection_string: str | None = None,
+        gcs_endpoint_url: str | None = None,
+    ) -> None:
+        self._request: pytest.FixtureRequest | None = None
 
-        self._local_path_factory: Optional["pytest.TempPathFactory"] = None
+        self._local_path_factory: pytest.TempPathFactory | None = None
         self._azure_connection_string = azure_connection_string
         self._gcs_endpoint_url = gcs_endpoint_url
         self._s3_endpoint_url = s3_endpoint_url
 
     @classmethod
     def from_request(
-        cls, request: "pytest.FixtureRequest", *args, **kwargs
-    ) -> "TempUPathFactory":
+        cls: type[TempUPathFactory],
+        request: pytest.FixtureRequest,
+        *args,
+        **kwargs,
+    ) -> TempUPathFactory:
         """Create a factory according to pytest configuration."""
         tmp_upath_factory = cls(*args, **kwargs)
-        tmp_upath_factory._local_path_factory = pytest.TempPathFactory.from_config(
-            request.config, _ispytest=True
+        tmp_upath_factory._local_path_factory = (  # noqa: SLF001
+            pytest.TempPathFactory.from_config(
+                request.config,
+                _ispytest=True,
+            )
         )
-        tmp_upath_factory._request = request
+        tmp_upath_factory._request = request  # noqa: SLF001
 
         return tmp_upath_factory
 
-    def _mock_remote_setup(self, fs: "str") -> None:
+    def _mock_remote_setup(self, fs: str) -> None:
         try:
             (
                 mock_remote_fixture,
@@ -55,34 +76,34 @@ class TempUPathFactory:
                 needs_docker,
             ) = self.mock_remotes[fs]
         except KeyError:
-            raise RemoteUnavailable(f"No mock remote available for fs: {fs}")
+            msg = f"No mock remote available for fs: {fs}"
+            raise RemoteUnavailable(msg) from None
 
         if getattr(self, remote_config_name):  # remote is already configured
             return
 
-        if needs_docker and os.environ.get("CI"):
-            if sys.platform == "win32":
-                pytest.skip(
-                    "disabled for Windows on Github Actions: "
-                    "https://github.com/actions/runner-images/issues/1143"
-                )
+        if needs_docker and os.environ.get("CI") and sys.platform == "win32":
+            pytest.skip(
+                "disabled for Windows on Github Actions: "
+                "https://github.com/actions/runner-images/issues/1143",
+            )
 
         assert self._request
         try:
             remote_config = self._request.getfixturevalue(mock_remote_fixture)
         except pytest.FixtureLookupError:
-            raise RemoteUnavailable(
-                f'{fs}: Failed to setup "{mock_remote_fixture}" fixture'
-            )
+            msg = f'{fs}: Failed to setup "{mock_remote_fixture}" fixture'
+            raise RemoteUnavailable(msg) from None
         setattr(self, remote_config_name, remote_config)
 
-    def mktemp(
+    def mktemp(  # noqa: C901 # complex-structure
         self,
         fs: str = "local",
+        *,
         mock: bool = True,
         version_aware: bool = False,
         **kwargs,
-    ) -> "UPath":
+    ) -> UPath:
         """Create a new temporary directory managed by the factory.
 
         :param fs:
@@ -101,11 +122,13 @@ class TempUPathFactory:
         """
         if fs == "local":
             if version_aware:
-                raise NotImplementedError(f"not implemented for {fs=}")
+                msg = f"not implemented for {fs=}"
+                raise NotImplementedError(msg)
             return self.local()
-        elif fs == "memory":
+        if fs == "memory":
             if version_aware:
-                raise NotImplementedError(f"not implemented for {fs=}")
+                msg = f"not implemented for {fs=}"
+                raise NotImplementedError(msg)
             return self.memory(**kwargs)
 
         if mock:
@@ -117,39 +140,44 @@ class TempUPathFactory:
                 version_aware=version_aware,
                 **kwargs,
             )
-        elif fs == "azure":
+        if fs == "azure":
             if version_aware and mock:
-                raise NotImplementedError(f"not implemented for {fs=}")
+                msg = f"not implemented for {fs=}"
+                raise NotImplementedError(msg)
             if not self._azure_connection_string:
-                raise RemoteUnavailable("missing connection string")
+                msg = "missing connection string"
+                raise RemoteUnavailable(msg)
             return self.azure(connection_string=self._azure_connection_string, **kwargs)
-        elif fs == "gcs":
+        if fs == "gcs":
             return self.gcs(
                 endpoint_url=self._gcs_endpoint_url,
                 version_aware=version_aware,
                 **kwargs,
             )
-        else:
-            raise ValueError(fs)
 
-    def local(self):
+        raise ValueError(fs)
+
+    def local(self) -> LocalPath:
+        """Create a local temporary path."""
         mktemp = (
             self._local_path_factory.mktemp
             if self._local_path_factory is not None
             else tempfile.mktemp
         )
-        return LocalPath(mktemp("pytest-servers"))
+        return LocalPath(mktemp("pytest-servers"))  # type: ignore[operator]
 
     def s3(
         self,
-        endpoint_url: Optional[str] = None,
+        endpoint_url: str | None = None,
+        *,
         version_aware: bool = False,
         **kwargs,
     ) -> UPath:
-        """Creates a new S3 bucket and returns an UPath instance  .
+        """Create a new S3 bucket and returns an UPath instance  .
 
-        `endpoint_url` can be used to use custom servers (e.g. moto s3)."""
-        client_kwargs: Dict[str, Any] = {}
+        `endpoint_url` can be used to use custom servers (e.g. moto s3).
+        """
+        client_kwargs: dict[str, Any] = {}
         if endpoint_url:
             client_kwargs["endpoint_url"] = endpoint_url
 
@@ -176,8 +204,12 @@ class TempUPathFactory:
 
         return path
 
-    def azure(self, connection_string: str, **kwargs) -> UPath:
-        """Creates a new container and returns an UPath instance"""
+    def azure(
+        self,
+        connection_string: str,
+        **kwargs,
+    ) -> UPath:
+        """Create a new container and returns an UPath instance."""
         container_name = f"pytest-servers-{random_string()}"
         path = UPath(
             f"az://{container_name}",
@@ -190,8 +222,11 @@ class TempUPathFactory:
         path.mkdir(parents=True, exist_ok=False)
         return path
 
-    def memory(self, **kwargs) -> UPath:
-        """Creates a new temporary in-memory path returns an UPath instance"""
+    def memory(
+        self,
+        **kwargs,
+    ) -> UPath:
+        """Create a new temporary in-memory path returns an UPath instance."""
         path = UPath(
             f"memory:/{random_string()}",
             **kwargs,
@@ -201,16 +236,17 @@ class TempUPathFactory:
 
     def gcs(
         self,
-        endpoint_url: Optional[str] = None,
+        endpoint_url: str | None = None,
+        *,
         version_aware: bool = False,
         **kwargs,
     ) -> UPath:
-        """Creates a new gcs bucket and returns an UPath instance.
+        """Create a new gcs bucket and return an UPath instance.
 
         `endpoint_url` can be used to use custom servers
         (e.g. fake-gcs-server).
         """
-        client_kwargs: Dict[str, Any] = {}
+        client_kwargs: dict[str, Any] = {}
         if endpoint_url:
             client_kwargs["endpoint_url"] = endpoint_url
 
@@ -230,6 +266,7 @@ class TempUPathFactory:
         # UPath adds a trailing slash here, due to which
         # gcsfs.isdir() returns False.
         # pylint: disable=protected-access,assigning-non-slot
-        original = path._accessor._format_path
-        path._accessor._format_path = lambda p: original(p).rstrip("/")
+        original = path._accessor._format_path  # noqa: SLF001
+
+        path._accessor._format_path = lambda path: original(path).rstrip("/")  # type: ignore[method-assign] # noqa: SLF001
         return path

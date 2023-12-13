@@ -1,7 +1,7 @@
-# pylint: disable=unused-import,redefined-outer-name
 from typing import TYPE_CHECKING
 
 import pytest
+from upath import UPath
 
 from .azure import azurite  # noqa: F401
 from .factory import TempUPathFactory
@@ -15,81 +15,94 @@ from .s3 import (  # noqa: F401
 from .utils import docker_client, monkeypatch_session  # noqa: F401
 
 if TYPE_CHECKING:
-    from pytest import FixtureRequest
+    from pytest import MonkeyPatch  # noqa: PT013
 
 
-def _version_aware(request: "FixtureRequest") -> bool:
+def _version_aware(request: pytest.FixtureRequest) -> bool:
     return "versioning" in request.fixturenames
 
 
 @pytest.fixture
-def versioning():
-    """Enables versioning for supported remotes."""
-    yield
+def versioning():  # noqa: ANN201
+    """Enable versioning for supported remotes."""
 
 
 @pytest.fixture(scope="session")
-def tmp_upath_factory(request: "FixtureRequest"):
+def tmp_upath_factory(request: pytest.FixtureRequest) -> TempUPathFactory:
     """Return a TempUPathFactory instance for the test session."""
-    yield TempUPathFactory.from_request(request)
+    return TempUPathFactory.from_request(request)
 
 
 @pytest.fixture
-def tmp_s3_path(tmp_upath_factory, request):
+def tmp_s3_path(
+    tmp_upath_factory: TempUPathFactory,
+    request: pytest.FixtureRequest,
+) -> UPath:
     """Temporary path on a mocked S3 remote."""
-    yield tmp_upath_factory.mktemp("s3", version_aware=_version_aware(request))
+    return tmp_upath_factory.mktemp("s3", version_aware=_version_aware(request))
 
 
 @pytest.fixture
-def tmp_local_path(tmp_upath_factory, monkeypatch):
+def tmp_local_path(
+    tmp_upath_factory: TempUPathFactory,
+    monkeypatch: "MonkeyPatch",
+) -> UPath:
     """Return a temporary path."""
     ret = tmp_upath_factory.mktemp()
     monkeypatch.chdir(ret)
-    yield ret
+    return ret
 
 
 @pytest.fixture
-def tmp_azure_path(tmp_upath_factory):
+def tmp_azure_path(tmp_upath_factory: TempUPathFactory) -> UPath:
     """Return a temporary path."""
-    yield tmp_upath_factory.mktemp("azure")
+    return tmp_upath_factory.mktemp("azure")
 
 
 @pytest.fixture
-def tmp_memory_path(tmp_upath_factory):
+def tmp_memory_path(tmp_upath_factory: TempUPathFactory) -> UPath:
     """Return a temporary path in a MemoryFileSystem."""
-    yield tmp_upath_factory.mktemp("memory")
+    return tmp_upath_factory.mktemp("memory")
 
 
 @pytest.fixture
-def tmp_gcs_path(tmp_upath_factory, request):
+def tmp_gcs_path(
+    tmp_upath_factory: TempUPathFactory,
+    request: pytest.FixtureRequest,
+) -> UPath:
     """Return a temporary path."""
-    yield tmp_upath_factory.mktemp("gcs", version_aware=_version_aware(request))
+    return tmp_upath_factory.mktemp(
+        "gcs",
+        version_aware=_version_aware(request),
+    )
 
 
 @pytest.fixture
 def tmp_upath(
-    request: "FixtureRequest",
-    tmp_upath_factory,
-):
+    tmp_upath_factory: TempUPathFactory,
+    request: pytest.FixtureRequest,
+) -> UPath:
     """Temporary directory on different filesystems.
 
     Usage:
-    >>> @pytest.mark.parametrize("tmp_upath", ["local", "s3", "azure"], indirect=True]) # noqa: E501
+    >>> @pytest.mark.parametrize("tmp_upath", ["local", "s3", "azure"], indirect=True)
     >>> def test_something(tmp_upath):
     >>>     pass
     """
     param = getattr(request, "param", "local")
     version_aware = _version_aware(request)
     if version_aware and param not in ("gcs", "s3"):
-        raise NotImplementedError(f"Versioning is not supported for {param}")
+        msg = f"Versioning is not supported for {param}"
+        raise NotImplementedError(msg)
     if param == "local":
         return tmp_upath_factory.mktemp()
-    elif param == "memory":
+    if param == "memory":
         return tmp_upath_factory.mktemp("memory")
-    elif param == "s3":
+    if param == "s3":
         return tmp_upath_factory.mktemp("s3", version_aware=version_aware)
-    elif param == "azure":
+    if param == "azure":
         return tmp_upath_factory.mktemp("azure")
-    elif param == "gcs":
+    if param == "gcs":
         return tmp_upath_factory.mktemp("gcs", version_aware=version_aware)
-    raise ValueError(f"unknown {param=}")
+    msg = f"unknown {param=}"
+    raise ValueError(msg)
