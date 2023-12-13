@@ -39,7 +39,7 @@ with_versioning = [
 @pytest.mark.parametrize(
     "fs,cls",
     implementations,
-    ids=[param.values[0] for param in implementations],  # type: ignore
+    ids=[param.values[0] for param in implementations],  # type: ignore[misc]
 )
 class TestTmpUPathFactory:
     def test_init(self, tmp_upath_factory, fs, cls):
@@ -65,7 +65,7 @@ class TestTmpUPathFactory:
 @pytest.mark.parametrize(
     "fs,cls",
     with_versioning,
-    ids=[param.values[0] for param in with_versioning],  # type: ignore
+    ids=[param.values[0] for param in with_versioning],  # type: ignore[misc]
 )
 class TestTmpUPathFactoryVersioning:
     def test_mktemp(self, tmp_upath_factory, fs, cls):

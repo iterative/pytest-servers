@@ -4,9 +4,7 @@ from pathlib import Path
 from pytest_servers.fixtures import _version_aware
 
 
-def test_s3_fake_creds_file(
-    s3_fake_creds_file,  # pylint: disable=unused-argument
-):
+def test_s3_fake_creds_file(s3_fake_creds_file):
     assert os.getenv("AWS_PROFILE") is None
     assert os.getenv("AWS_ACCESS_KEY_ID") == "pytest-servers"
     assert os.getenv("AWS_SECRET_ACCESS_KEY") == "pytest-servers"

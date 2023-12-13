@@ -1,10 +1,14 @@
 import logging
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
 from filelock import FileLock
 
 from .utils import wait_until, wait_until_running
+
+if TYPE_CHECKING:
+    from docker import DockerClient
 
 AZURITE_PORT = 10000
 AZURITE_URL = "http://localhost:{port}"
@@ -17,7 +21,10 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
-def azurite(docker_client, tmp_path_factory):
+def azurite(
+    docker_client: "DockerClient",
+    tmp_path_factory: pytest.TempPathFactory,
+) -> str:
     """Spins up an azurite container. Returns the connection string."""
     from docker.errors import NotFound
 
@@ -44,7 +51,7 @@ def azurite(docker_client, tmp_path_factory):
             port = docker_client.api.port(container_name, AZURITE_PORT)[0]["HostPort"]
             wait_until_running(container)
 
-    def is_healthy():
+    def is_healthy() -> bool:
         r = requests.get(AZURITE_URL.format(port=port), timeout=3)
         return (
             r.status_code == 400
@@ -54,4 +61,4 @@ def azurite(docker_client, tmp_path_factory):
 
     wait_until(is_healthy, 10)
 
-    yield AZURITE_CONNECTION_STRING.format(port=port)
+    return AZURITE_CONNECTION_STRING.format(port=port)

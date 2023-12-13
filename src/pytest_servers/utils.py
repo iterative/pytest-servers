@@ -3,11 +3,12 @@ import random
 import socket
 import string
 import time
-from typing import TYPE_CHECKING, Callable, TypeVar
+from typing import TYPE_CHECKING, Callable, NamedTuple, TypeVar
 
 import pytest
 
 if TYPE_CHECKING:
+    from docker import DockerClient
     from docker.models.containers import Container
 
 
@@ -22,32 +23,36 @@ def wait_until(pred: Callable[..., _T], timeout: float, pause: float = 0.1) -> _
     while (time.perf_counter() - start) < timeout:
         try:
             value = pred()
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:  # noqa: BLE001
             exc = e
         else:
             return value
         time.sleep(pause)
 
-    raise TimeoutError("timed out waiting") from exc
+    msg = "timed out waiting"
+    raise TimeoutError(msg) from exc
 
 
 def random_string(n: int = 6) -> str:
-    return "".join(random.choices(string.ascii_lowercase, k=n))  # nosec B311
+    return "".join(
+        random.choices(  # nosec B311 # noqa: S311
+            string.ascii_lowercase,
+            k=n,
+        ),
+    )
 
 
 @pytest.fixture(scope="session")
-def monkeypatch_session():
-    """Session-scoped monkeypatch"""
-    from _pytest.monkeypatch import MonkeyPatch
-
-    m = MonkeyPatch()
+def monkeypatch_session() -> pytest.MonkeyPatch:  # type: ignore[misc]
+    """Session-scoped monkeypatch."""
+    m = pytest.MonkeyPatch()
     yield m
     m.undo()
 
 
 @pytest.fixture(scope="session")
-def docker_client():
-    """Run docker commands using the python API"""
+def docker_client() -> "DockerClient":
+    """Run docker commands using the python API."""
     import docker
 
     client = docker.from_env()
@@ -58,24 +63,35 @@ def docker_client():
 
 
 def wait_until_running(
-    container: "Container", timeout: int = 30, pause: float = 0.5
+    container: "Container",
+    timeout: int = 30,
+    pause: float = 0.5,
 ) -> None:
-    def check():
+    def check() -> bool:
         container.reload()
         return container.status == "running"
 
     wait_until(check, timeout=timeout, pause=pause)
 
 
-def get_free_port() -> int:  # type: ignore[return]
+def get_free_port() -> int:
     retries = 3
     while retries >= 0:
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.listen()
                 free_port = s.getsockname()[1]
-            return free_port
-        except OSError as exc:
+        except OSError as exc:  # noqa: PERF203
             retries -= 1
-            if retries <= 0:
-                raise SystemError("Could not get a free port") from exc
+            exception = exc
+        else:
+            return free_port
+
+    msg = "Could not get a free port"
+    raise SystemError(msg) from exception
+
+
+class MockRemote(NamedTuple):
+    fixture_name: str
+    config_attribute_name: str
+    requires_docker: bool

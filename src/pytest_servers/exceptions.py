@@ -1,4 +1,4 @@
-class PytestServersException(Exception):
+class PytestServersException(Exception):  # noqa: N818
     """Base class for all pytest-servers exceptions."""
 
     def __init__(self, msg: str, *args):
@@ -8,4 +8,4 @@ class PytestServersException(Exception):
 
 
 class RemoteUnavailable(PytestServersException):
-    """Raise when the given remote is not available"""
+    """Raise when the given remote is not available."""

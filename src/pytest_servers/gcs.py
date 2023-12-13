@@ -1,4 +1,5 @@
 import logging
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
@@ -6,13 +7,19 @@ from filelock import FileLock
 
 from .utils import get_free_port, wait_until, wait_until_running
 
+if TYPE_CHECKING:
+    from docker import DockerClient
+
 logger = logging.getLogger(__name__)
 
 GCS_DEFAULT_PORT = 4443
 
 
 @pytest.fixture(scope="session")
-def fake_gcs_server(docker_client, tmp_path_factory):
+def fake_gcs_server(
+    docker_client: "DockerClient",
+    tmp_path_factory: pytest.TempPathFactory,
+) -> str:
     """Spins up a fake-gcs-server container. Returns the endpoint URL."""
     from docker.errors import NotFound
 
@@ -54,4 +61,4 @@ def fake_gcs_server(docker_client, tmp_path_factory):
     # make sure the container is healthy
     wait_until(lambda: requests.get(f"{url}/storage/v1/b", timeout=10).ok, 10)
 
-    yield url
+    return url
