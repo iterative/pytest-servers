@@ -31,14 +31,14 @@ class TempUPathFactory:
         ),
         "s3": MockRemote(
             "s3_server",
-            "_s3_endpoint_url",
+            "_s3_client_kwargs",
             requires_docker=False,
         ),
     }
 
     def __init__(
         self,
-        s3_endpoint_url: str | None = None,
+        s3_client_kwargs: dict[str, str] | None = None,
         azure_connection_string: str | None = None,
         gcs_endpoint_url: str | None = None,
     ) -> None:
@@ -47,7 +47,7 @@ class TempUPathFactory:
         self._local_path_factory: pytest.TempPathFactory | None = None
         self._azure_connection_string = azure_connection_string
         self._gcs_endpoint_url = gcs_endpoint_url
-        self._s3_endpoint_url = s3_endpoint_url
+        self._s3_client_kwargs = s3_client_kwargs
 
     @classmethod
     def from_request(
@@ -70,16 +70,13 @@ class TempUPathFactory:
 
     def _mock_remote_setup(self, fs: str) -> None:
         try:
-            (
-                mock_remote_fixture,
-                remote_config_name,
-                needs_docker,
-            ) = self.mock_remotes[fs]
+            fixture, config_attr, needs_docker = self.mock_remotes[fs]
         except KeyError:
             msg = f"No mock remote available for fs: {fs}"
             raise RemoteUnavailable(msg) from None
 
-        if getattr(self, remote_config_name):  # remote is already configured
+        if getattr(self, config_attr):
+            # remote is already configured
             return
 
         if needs_docker and os.environ.get("CI") and sys.platform == "win32":
@@ -90,15 +87,15 @@ class TempUPathFactory:
 
         assert self._request
         try:
-            remote_config = self._request.getfixturevalue(mock_remote_fixture)
+            remote_config = self._request.getfixturevalue(fixture)
         except Exception as exc:  # noqa: BLE001
-            msg = f'{fs}: Failed to setup "{mock_remote_fixture}": {exc}'
+            msg = f'{fs}: Failed to setup "{fixture}": {exc}'
             if self._request.config.option.verbose >= 1:
                 raise RemoteUnavailable(msg) from exc
 
             raise RemoteUnavailable(msg) from None
 
-        setattr(self, remote_config_name, remote_config)
+        setattr(self, config_attr, remote_config)
 
     def mktemp(  # noqa: C901 # complex-structure
         self,
@@ -140,7 +137,7 @@ class TempUPathFactory:
 
         if fs == "s3":
             return self.s3(
-                endpoint_url=self._s3_endpoint_url,
+                client_kwargs=self._s3_client_kwargs,
                 version_aware=version_aware,
                 **kwargs,
             )
@@ -172,22 +169,19 @@ class TempUPathFactory:
 
     def s3(
         self,
-        endpoint_url: str | None = None,
+        client_kwargs: dict[str, Any] | None = None,
         *,
         version_aware: bool = False,
         **kwargs,
     ) -> UPath:
-        """Create a new S3 bucket and returns an UPath instance  .
+        """Create a new S3 bucket and returns an UPath instance.
 
-        `endpoint_url` can be used to use custom servers (e.g. moto s3).
+        `client_kwargs` can be used to configure the underlying boto client
         """
-        client_kwargs: dict[str, Any] = {}
-        if endpoint_url:
-            client_kwargs["endpoint_url"] = endpoint_url
-
         bucket_name = f"pytest-servers-{random_string()}"
         path = UPath(
             f"s3://{bucket_name}",
+            endpoint_url=client_kwargs.get("endpoint_url") if client_kwargs else None,
             client_kwargs=client_kwargs,
             version_aware=version_aware,
             **kwargs,
@@ -196,8 +190,16 @@ class TempUPathFactory:
             from botocore.session import Session
 
             session = Session()
-            client = session.create_client("s3", endpoint_url=endpoint_url)
-            client.create_bucket(Bucket=bucket_name, ACL="public-read")
+            client = session.create_client("s3", **client_kwargs)
+            client.create_bucket(
+                Bucket=bucket_name,
+                ACL="public-read",
+                CreateBucketConfiguration={
+                    "LocationConstraint": client_kwargs.get("region_name"),
+                }
+                if client_kwargs
+                else None,
+            )
 
             client.put_bucket_versioning(
                 Bucket=bucket_name,
