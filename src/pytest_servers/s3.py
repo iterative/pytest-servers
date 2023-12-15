@@ -38,48 +38,28 @@ class MockedS3Server:
 
 
 @pytest.fixture(scope="session")
-def s3_fake_creds_file(monkeypatch_session: pytest.MonkeyPatch) -> None:  # type: ignore[misc]
-    # https://github.com/spulec/moto#other-caveats
-    import pathlib
-
-    aws_dir = pathlib.Path("~").expanduser() / ".aws"
-    aws_dir.mkdir(exist_ok=True)
-
-    aws_creds = aws_dir / "credentials"
-    initially_exists = aws_creds.exists()
-
-    if not initially_exists:
-        aws_creds.touch()
-
-    try:
-        with monkeypatch_session.context() as m:
-            try:
-                m.delenv("AWS_PROFILE")
-            except KeyError:
-                pass
-            m.setenv("AWS_ACCESS_KEY_ID", "pytest-servers")
-            m.setenv("AWS_SECRET_ACCESS_KEY", "pytest-servers")
-            m.setenv("AWS_SECURITY_TOKEN", "pytest-servers")
-            m.setenv("AWS_SESSION_TOKEN", "pytest-servers")
-            m.setenv("AWS_DEFAULT_REGION", "us-east-1")
-            yield
-    finally:
-        if aws_creds.exists() and not initially_exists:
-            aws_creds.unlink()
-
-
-@pytest.fixture(scope="session")
 def s3_server_config() -> dict:
-    """Override to change default config of the server."""
+    """Override to change default config of the moto server."""
     return {}
 
 
 @pytest.fixture(scope="session")
 def s3_server(  # type: ignore[misc]
+    monkeypatch_session: pytest.MonkeyPatch,
     s3_server_config: dict,
-    s3_fake_creds_file: None,  # noqa: ARG001
-) -> str:
-    """Spins up a moto s3 server. Returns the endpoint URL."""
+) -> dict[str, str | None]:
+    """Spins up a moto s3 server.
+
+    Returns a client_kwargs dict that can be used with a boto client.
+    """
     assert isinstance(s3_server_config, dict)
+    monkeypatch_session.setenv("MOTO_ALLOW_NONEXISTENT_REGION", "true")
+
     with MockedS3Server(**s3_server_config) as server:
-        yield server.endpoint_url
+        yield {
+            "endpoint_url": server.endpoint_url,
+            "aws_access_key_id": "pytest-servers",
+            "aws_secret_access_key": "pytest-servers",
+            "aws_session_token": "pytest-servers",
+            "region_name": "pytest-servers-region",
+        }

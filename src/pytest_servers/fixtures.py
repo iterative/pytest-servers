@@ -8,7 +8,6 @@ from .factory import TempUPathFactory
 from .gcs import fake_gcs_server  # noqa: F401
 from .s3 import (  # noqa: F401
     MockedS3Server,
-    s3_fake_creds_file,
     s3_server,
     s3_server_config,
 )

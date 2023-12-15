@@ -115,7 +115,7 @@ The `tmp_upath` fixture can be used for parametrizing paths with pytest's indire
 
 In order to use real remotes instead of mocked ones, use `tmp_upath_factory` with the following methods
 
-- ``tmp_upath_factory.s3(region_name, endpoint_url)``
+- ``tmp_upath_factory.s3(region_name, client_kwargs)`` where client_kwargs are passed to the underlying S3FileSystem/boto client
 - ``tmp_upath_factory.gcs(endpoint_url)``
 - ``tmp_upath_factory.azure(connection_string)``
 
