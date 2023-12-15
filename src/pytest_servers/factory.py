@@ -213,18 +213,18 @@ class TempUPathFactory:
         connection_string: str,
         **kwargs,
     ) -> UPath:
-        """Create a new container and returns an UPath instance."""
+        """Create a new container and return an UPath instance."""
+        from azure.storage.blob import BlobServiceClient
+
         container_name = f"pytest-servers-{random_string()}"
-        path = UPath(
+        client = BlobServiceClient.from_connection_string(conn_str=connection_string)
+        client.create_container(container_name)
+
+        return UPath(
             f"az://{container_name}",
             connection_string=connection_string,
-            # To actually get an error instead of a false-positive
-            # "Container exists", see https://github.com/fsspec/adlfs/pull/415
-            assume_container_exists=False,
             **kwargs,
         )
-        path.mkdir(parents=True, exist_ok=False)
-        return path
 
     def memory(
         self,
@@ -262,10 +262,7 @@ class TempUPathFactory:
             **client_kwargs,
             **kwargs,
         )
-        if version_aware:
-            path.fs.mkdir(bucket_name, enable_versioning=True, exist_ok=False)
-        else:
-            path.mkdir(parents=True, exist_ok=False)
+        path.fs.mkdir(bucket_name, enable_versioning=version_aware, exist_ok=False)
 
         # UPath adds a trailing slash here, due to which
         # gcsfs.isdir() returns False.
