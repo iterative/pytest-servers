@@ -124,7 +124,6 @@ ignore = [
     "SIM105", # suppressible-exception
     "SIM108", # if-else-block-instead-of-if-exp
     "D203", # one blank line before class
-
     "D213", # multi-line-summary-second-line
 
     "D100", # missing docstring in public module
