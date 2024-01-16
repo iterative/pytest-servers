@@ -69,7 +69,7 @@ def fake_gcs_server(
     try:
         wait_until(
             lambda: requests.get(f"{url}/storage/v1/b", timeout=10).ok,
-            timeout=60,
+            timeout=300,
         )
     except TimeoutError:
         raise HealthcheckTimeout(

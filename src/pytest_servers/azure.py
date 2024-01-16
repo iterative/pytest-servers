@@ -69,7 +69,7 @@ def azurite(
     try:
         wait_until(
             is_healthy,
-            timeout=60,
+            timeout=300,
         )
     except TimeoutError:
         raise HealthcheckTimeout(

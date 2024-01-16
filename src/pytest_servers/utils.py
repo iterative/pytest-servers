@@ -64,7 +64,7 @@ def docker_client() -> "DockerClient":
 
 def wait_until_running(
     container: "Container",
-    timeout: int = 30,
+    timeout: int = 120,
     pause: float = 0.5,
 ) -> None:
     def check() -> bool:
