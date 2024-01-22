@@ -56,11 +56,18 @@ jobs:
         ls -la $HOME/.colima/default/docker.sock
         sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
         ls -la /var/run/docker.sock
+        echo "*** colima status:"
+        colima status --extended
 
     - name: Run tests
       run: nox -s tests-${{ matrix.nox_pyv || matrix.pyv }}
       env:
         COVERAGE_XML: true
+
+    - name: Colima status
+      if: failure() && matrix.os == 'macos-latest'
+      run: |
+        colima status --extended
 
     - name: Upload coverage report
       uses: codecov/codecov-action@v3.1.4
