@@ -2,7 +2,6 @@ import logging
 import random
 import socket
 import string
-import sys
 import time
 from typing import TYPE_CHECKING, Callable, NamedTuple, TypeVar
 
@@ -72,15 +71,7 @@ def wait_until_running(
         container.reload()
         return container.status == "running"
 
-    try:
-        wait_until(check, timeout=timeout, pause=pause)
-    except TimeoutError:
-        print(  # noqa: T201
-            f"Timed out waiting for {container.name=}. Container logs:\n",
-            "\n".join(container.logs()),
-            file=sys.stderr,
-        )
-        raise
+    wait_until(check, timeout=timeout, pause=pause)
 
 
 def get_free_port() -> int:
