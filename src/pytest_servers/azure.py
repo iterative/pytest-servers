@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING
 
@@ -5,10 +7,12 @@ import pytest
 import requests
 from filelock import FileLock
 
+from .exceptions import HealthcheckTimeout
 from .utils import wait_until, wait_until_running
 
 if TYPE_CHECKING:
     from docker import DockerClient
+    from docker.models import Container
 
 AZURITE_PORT = 10000
 AZURITE_URL = "http://localhost:{port}"
@@ -22,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture(scope="session")
 def azurite(
-    docker_client: "DockerClient",
+    docker_client: DockerClient,
     tmp_path_factory: pytest.TempPathFactory,
 ) -> str:
     """Spins up an azurite container. Returns the connection string."""
@@ -35,8 +39,7 @@ def azurite(
 
     with FileLock(azurite_lock):
         try:
-            port = docker_client.api.port(container_name, AZURITE_PORT)[0]["HostPort"]
-            container = None
+            container: Container = docker_client.containers.get(container_name)
         except NotFound:
             container = docker_client.containers.run(
                 "mcr.microsoft.com/azure-storage/azurite:3.29.0",  # renovate
@@ -48,8 +51,9 @@ def azurite(
                 remove=True,
                 ports={f"{AZURITE_PORT}/tcp": None},  # assign a random port
             )
-            port = docker_client.api.port(container_name, AZURITE_PORT)[0]["HostPort"]
-            wait_until_running(container)
+
+        wait_until_running(container)
+        port = container.ports.get(f"{AZURITE_PORT}/tcp")[0]["HostPort"]
 
     def is_healthy() -> bool:
         r = requests.get(AZURITE_URL.format(port=port), timeout=3)
@@ -59,6 +63,15 @@ def azurite(
             and "Azurite" in r.headers["Server"]
         )
 
-    wait_until(is_healthy, 10)
+    try:
+        wait_until(
+            is_healthy,
+            timeout=30,
+        )
+    except TimeoutError:
+        raise HealthcheckTimeout(
+            container.name,
+            container.logs().decode(),
+        ) from None
 
     return AZURITE_CONNECTION_STRING.format(port=port)

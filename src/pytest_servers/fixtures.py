@@ -6,11 +6,7 @@ from upath import UPath
 from .azure import azurite  # noqa: F401
 from .factory import TempUPathFactory
 from .gcs import fake_gcs_server  # noqa: F401
-from .s3 import (  # noqa: F401
-    MockedS3Server,
-    s3_server,
-    s3_server_config,
-)
+from .s3 import MockedS3Server, s3_server, s3_server_config  # noqa: F401
 from .utils import docker_client, monkeypatch_session  # noqa: F401
 
 if TYPE_CHECKING:
