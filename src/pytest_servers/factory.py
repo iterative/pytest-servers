@@ -86,14 +86,7 @@ class TempUPathFactory:
             )
 
         assert self._request
-        try:
-            remote_config = self._request.getfixturevalue(fixture)
-        except Exception as exc:  # noqa: BLE001
-            msg = f'{fs}: Failed to setup "{fixture}": {exc}'
-            if self._request.config.option.verbose >= 1:
-                raise RemoteUnavailable(msg) from exc
-
-            raise RemoteUnavailable(msg) from None
+        remote_config = self._request.getfixturevalue(fixture)
 
         setattr(self, config_attr, remote_config)
 
@@ -133,7 +126,16 @@ class TempUPathFactory:
             return self.memory(**kwargs)
 
         if mock:
-            self._mock_remote_setup(fs)
+            try:
+                self._mock_remote_setup(fs)
+            except Exception as exc:  # noqa: BLE001
+                assert self._request
+                from_exc = exc if self._request.config.option.verbose >= 1 else None
+                msg = (
+                    f"{fs}: Failed to setup mock remote: {exc}."
+                    "Run `pytest -v` for more details"
+                )
+                raise RemoteUnavailable(msg) from from_exc
 
         if fs == "s3":
             return self.s3(
