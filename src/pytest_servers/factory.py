@@ -132,8 +132,8 @@ class TempUPathFactory:
                 assert self._request
                 from_exc = exc if self._request.config.option.verbose >= 1 else None
                 msg = (
-                    f"{fs}: Failed to setup mock remote: {exc}."
-                    "Run `pytest -v` for more details"
+                    f"{fs}: Failed to setup mock remote: {exc}"
+                    "\nRun `pytest -v` for more details"
                 )
                 raise RemoteUnavailable(msg) from from_exc
 
