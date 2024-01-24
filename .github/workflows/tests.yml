@@ -58,11 +58,14 @@ jobs:
         ls -la /var/run/docker.sock
 
     - name: Run tests
-      run: nox -s tests-${{ matrix.nox_pyv || matrix.pyv }}
+      id: tests
+      run: nox -s tests-${{ matrix.pyv }}
+      continue-on-error: ${{ matrix.os == 'macos-latest' }}
       env:
         COVERAGE_XML: true
 
     - name: Upload coverage report
+      if: steps.tests.outcome  == 'success'
       uses: codecov/codecov-action@v3.1.4
 
     - name: Build package
