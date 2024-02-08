@@ -43,6 +43,8 @@ with_versioning = [
 )
 class TestTmpUPathFactory:
     def test_init(self, tmp_upath_factory, fs, cls):
+        if fs == "gcs":
+            pytest.skip("gcsfs does not support .exists() on a bucket")
         path = tmp_upath_factory.mktemp(fs)
         assert isinstance(path, cls)
         assert path.exists()
