@@ -16,6 +16,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Development Status :: 3 - Alpha",
     "Framework :: Pytest",
     "Intended Audience :: Developers",
@@ -26,7 +27,7 @@ dependencies = [
     "pytest>=6.2",
     "requests",
     "fsspec",
-    "universal-pathlib==0.1.4",
+    "universal-pathlib>=0.2.0",
     "filelock>=3.3.2",
 ]
 

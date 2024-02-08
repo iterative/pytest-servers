@@ -266,11 +266,4 @@ class TempUPathFactory:
             **kwargs,
         )
         path.fs.mkdir(bucket_name, enable_versioning=version_aware, exist_ok=False)
-
-        # UPath adds a trailing slash here, due to which
-        # gcsfs.isdir() returns False.
-        # pylint: disable=protected-access,assigning-non-slot
-        original = path._accessor._format_path  # noqa: SLF001
-
-        path._accessor._format_path = lambda path: original(path).rstrip("/")  # type: ignore[method-assign] # noqa: SLF001
         return path
