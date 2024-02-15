@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    - cron: '5 1 * * *'  # every day at 01:05
+    - cron: "5 1 * * *" # every day at 01:05
   workflow_dispatch:
 
 env:
@@ -23,50 +23,50 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, windows-latest, macos-latest]
-        pyv: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        pyv: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         include:
-        - {os: ubuntu-latest, pyv: 'pypy3.8'}
+          - {os: ubuntu-latest, pyv: "pypy3.8"}
 
     steps:
-    - name: Check out the repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Set up Python ${{ matrix.pyv }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.pyv }}
+      - name: Set up Python ${{ matrix.pyv }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.pyv }}
 
-    - name: Upgrade pip and nox
-      run: |
-        python -m pip install --upgrade pip nox
-        pip --version
-        nox --version
+      - name: Upgrade pip and nox
+        run: |
+          python -m pip install --upgrade pip nox
+          pip --version
+          nox --version
 
-    - name: Lint code and check dependencies
-      run: nox -s lint safety
+      - name: Lint code and check dependencies
+        run: nox -s lint safety
 
-    # https://github.com/abiosoft/colima/issues/468
-    - name: Use colima as default docker host on MacOS
-      if: matrix.os == 'macos-latest'
-      run: |
-        brew install docker
-        colima start
-        ls -la $HOME/.colima/default/docker.sock
-        sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
-        ls -la /var/run/docker.sock
+      # https://github.com/abiosoft/colima/issues/468
+      - name: Use colima as default docker host on MacOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install docker
+          colima start
+          ls -la $HOME/.colima/default/docker.sock
+          sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
+          ls -la /var/run/docker.sock
 
-    - name: Run tests
-      id: tests
-      run: nox -s tests-${{ matrix.pyv }}
-      continue-on-error: ${{ matrix.os == 'macos-latest' }}
-      env:
-        COVERAGE_XML: true
+      - name: Run tests
+        id: tests
+        run: nox -s tests-${{ matrix.pyv }}
+        continue-on-error: ${{ matrix.os == 'macos-latest' }}
+        env:
+          COVERAGE_XML: true
 
-    - name: Upload coverage report
-      if: steps.tests.outcome  == 'success'
-      uses: codecov/codecov-action@v4.0.1
+      - name: Upload coverage report
+        if: steps.tests.outcome  == 'success'
+        uses: codecov/codecov-action@v4.0.1
 
-    - name: Build package
-      run: nox -s build
+      - name: Build package
+        run: nox -s build
