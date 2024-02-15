@@ -2,33 +2,31 @@
 requires = ["setuptools>=48", "setuptools_scm[toml]>=6.3.1"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools_scm]
-
 [project]
 name = "pytest-servers"
 description = "pytest servers"
 readme = "README.rst"
 license = {text = "Apache-2.0"}
-authors = [{ name = "Iterative", email = "support@dvc.org" }]
+authors = [{name = "Iterative", email = "support@dvc.org"}]
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Development Status :: 3 - Alpha",
-    "Framework :: Pytest",
-    "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Development Status :: 3 - Alpha",
+  "Framework :: Pytest",
+  "Intended Audience :: Developers"
 ]
 requires-python = ">=3.8"
 dynamic = ["version"]
 dependencies = [
-    "pytest>=6.2",
-    "requests",
-    "fsspec",
-    "universal-pathlib>=0.2.0",
-    "filelock>=3.3.2",
+  "pytest>=6.2",
+  "requests",
+  "fsspec",
+  "universal-pathlib>=0.2.0",
+  "filelock>=3.3.2"
 ]
 
 [project.entry-points.pytest11]
@@ -41,32 +39,34 @@ Source = "https://github.com/iterative/pytest-servers"
 [project.optional-dependencies]
 docker = ["docker>6"]
 s3 = [
-    "moto[server]>=4",
-    "s3fs[boto3]>=2022.02.0",
-    "botocore>=1.31.17", # Temporary: explicitly define this to avoid pip backtracking while installing moto[server]
+  "moto[server]>=4",
+  "s3fs[boto3]>=2022.02.0",
+  "botocore>=1.31.17"  # Temporary: explicitly define this to avoid pip backtracking while installing moto[server]
 ]
 azure = [
-    "adlfs>=2022.02.22",
-    "pytest-servers[docker]",
+  "adlfs>=2022.02.22",
+  "pytest-servers[docker]"
 ]
 gcs = [
-    "gcsfs>=2022.02.22",
-    "pytest-servers[docker]",
+  "gcsfs>=2022.02.22",
+  "pytest-servers[docker]"
 ]
 all = ["pytest-servers[s3,azure,gcs]"]
 tests = [
-    # see https://github.com/nedbat/coveragepy/issues/1341#issuecomment-1228942657
-    "coverage-enable-subprocess",
-    "coverage[toml]>6",
-    "pytest-sugar==1.0.0",
-    "pytest-xdist==3.5.0",
-    "mypy==1.8.0",
-    "types-requests",
+  # see https://github.com/nedbat/coveragepy/issues/1341#issuecomment-1228942657
+  "coverage-enable-subprocess",
+  "coverage[toml]>6",
+  "pytest-sugar==1.0.0",
+  "pytest-xdist==3.5.0",
+  "mypy==1.8.0",
+  "types-requests"
 ]
 dev = [
-    "pytest-servers[all]",
-    "pytest-servers[tests]",
+  "pytest-servers[all]",
+  "pytest-servers[tests]"
 ]
+
+[tool.setuptools_scm]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -87,13 +87,13 @@ source = ["src", "*/site-packages"]
 [tool.coverage.report]
 show_missing = true
 exclude_lines = [
-    "pragma: no cover",
-    "if __name__ == .__main__.:",
-    "if typing.TYPE_CHECKING:",
-    "if TYPE_CHECKING:",
-    "raise NotImplementedError",
-    "raise AssertionError",
-    "@overload",
+  "pragma: no cover",
+  "if __name__ == .__main__.:",
+  "if typing.TYPE_CHECKING:",
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+  "raise AssertionError",
+  "@overload"
 ]
 
 [tool.mypy]
@@ -118,28 +118,25 @@ ignore-words-list = " "
 line-length = 88
 target-version = "py38"
 ignore = [
-    "S101", # assert
-    "PLR2004", # magic-value-comparison
-    "PLW2901", # redefined-loop-name
-    "ISC001", # single-line-implicit-string-concatenation
-    "SIM105", # suppressible-exception
-    "SIM108", # if-else-block-instead-of-if-exp
-    "D203", # one blank line before class
-    "D213", # multi-line-summary-second-line
-
-    "D100", # missing docstring in public module
-    "D101", # missing docstring in public class
-    "D102", # missing docstring in public method
-    "D103", # missing docstring in public function
-    "D104", # missing docstring in public package
-    "D105", # missing docstring in magic method
-    "D107", # missing docstring in method
-
-    "ANN002", # missing type annotation
-    "ANN101", # missing type annotation
-    "ANN204", # missing return type annotation
-
-    "PT004", # pytest-missing-fixture-name-underscore
+  "S101",  # assert
+  "PLR2004",  # magic-value-comparison
+  "PLW2901",  # redefined-loop-name
+  "ISC001",  # single-line-implicit-string-concatenation
+  "SIM105",  # suppressible-exception
+  "SIM108",  # if-else-block-instead-of-if-exp
+  "D203",  # one blank line before class
+  "D213",  # multi-line-summary-second-line
+  "D100",  # missing docstring in public module
+  "D101",  # missing docstring in public class
+  "D102",  # missing docstring in public method
+  "D103",  # missing docstring in public function
+  "D104",  # missing docstring in public package
+  "D105",  # missing docstring in magic method
+  "D107",  # missing docstring in method
+  "ANN002",  # missing type annotation
+  "ANN101",  # missing type annotation
+  "ANN204",  # missing return type annotation
+  "PT004"  # pytest-missing-fixture-name-underscore
 ]
 select = ["ALL"]
 show-source = true
@@ -148,20 +145,19 @@ show-fixes = true
 [tool.ruff.per-file-ignores]
 "noxfile.py" = ["D", "PTH"]
 "tests/**" = [
-    "S",
-     "ARG001",
-     "ARG002",
-     "ANN",
-     "D",
-     "PD011",
+  "S",
+  "ARG001",
+  "ARG002",
+  "ANN",
+  "D",
+  "PD011"
 ]
 "src/pytest_servers/fixtures.py" = [
-     "PT001", # pytest-fixture-incorrect-parentheses-style
+  "PT001"  # pytest-fixture-incorrect-parentheses-style
 ]
 "src/pytest_servers/factory.py" = [
-    "ANN003", # missing type kwargs
+  "ANN003"  # missing type kwargs
 ]
-
 "docs/**" = ["INP"]
 
 [tool.ruff.lint.flake8-type-checking]
