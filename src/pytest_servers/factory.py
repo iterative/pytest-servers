@@ -53,16 +53,11 @@ class TempUPathFactory:
     def from_request(
         cls: type[TempUPathFactory],
         request: pytest.FixtureRequest,
-        tmp_path_factory: pytest.TempPathFactory | None = None,
+        tmp_path_factory: pytest.TempPathFactory,
         *args,
         **kwargs,
     ) -> TempUPathFactory:
         """Create a factory according to pytest configuration."""
-        if tmp_path_factory is None:
-            tmp_path_factory = pytest.TempPathFactory.from_config(
-                request.config,
-                _ispytest=True,
-            )
         tmp_upath_factory = cls(*args, **kwargs)
         tmp_upath_factory._local_path_factory = tmp_path_factory  # noqa: SLF001
         tmp_upath_factory._request = request  # noqa: SLF001
