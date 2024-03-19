@@ -23,9 +23,12 @@ def versioning():  # noqa: ANN201
 
 
 @pytest.fixture(scope="session")
-def tmp_upath_factory(request: pytest.FixtureRequest) -> TempUPathFactory:
+def tmp_upath_factory(
+    request: pytest.FixtureRequest,
+    tmp_path_factory: pytest.TempPathFactory,
+) -> TempUPathFactory:
     """Return a TempUPathFactory instance for the test session."""
-    return TempUPathFactory.from_request(request)
+    return TempUPathFactory.from_request(request, tmp_path_factory)
 
 
 @pytest.fixture
