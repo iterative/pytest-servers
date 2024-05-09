@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-latest, macos-latest]
+        os: [ubuntu-20.04, windows-latest, macos-13]
         pyv: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         include:
           - {os: ubuntu-latest, pyv: "pypy3.8"}
@@ -49,18 +49,15 @@ jobs:
 
       # https://github.com/abiosoft/colima/issues/468
       - name: Use colima as default docker host on MacOS
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-13'
         run: |
-          brew install docker
+          brew install docker colima 
           colima start
-          ls -la $HOME/.colima/default/docker.sock
-          sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
-          ls -la /var/run/docker.sock
 
       - name: Run tests
         id: tests
         run: nox -s tests-${{ matrix.pyv }}
-        continue-on-error: ${{ matrix.os == 'macos-latest' }}
+        continue-on-error: ${{ matrix.os == 'macos-13' }}
         env:
           COVERAGE_XML: true
 
