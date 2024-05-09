@@ -52,6 +52,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           brew install docker
+          brew install colima
           colima start
           ls -la $HOME/.colima/default/docker.sock
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
