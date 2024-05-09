@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-latest, macos-13]
+        os: [ubuntu-20.04, windows-latest, macos-latest]
         pyv: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         include:
           - {os: ubuntu-latest, pyv: "pypy3.8"}
@@ -47,17 +47,29 @@ jobs:
       - name: Lint code and check dependencies
         run: nox -s lint safety
 
+      # https://github.com/iterative/pytest-servers/pull/122
       # https://github.com/abiosoft/colima/issues/468
+      # https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#cannot-connect-to-the-docker-daemon-at-unixvarrundockersock-is-the-docker-daemon-running
+      # colima v0.5.6 seems to run more stable than the latest - that has occasional network failures (ports are not open)
+      # see: https://github.com/abiosoft/colima/issues/962
       - name: Use colima as default docker host on MacOS
-        if: matrix.os == 'macos-13'
+        if: matrix.os == 'macos-latest'
         run: |
-          brew install docker colima 
+          brew install docker lima || true # avoid non-zero exit code if brew link fails
+          sudo curl -L -o /usr/local/bin/colima https://github.com/abiosoft/colima/releases/download/v0.5.6/colima-Darwin-x86_64
+          sudo chmod +x /usr/local/bin/colima
           colima start
+          sudo ln -vsf "${HOME}"/.colima/default/docker.sock /var/run/docker.sock
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: true
+          HOMEBREW_NO_INSTALL_CLEANUP: true
+          HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: true
+          HOMEBREW_NO_INSTALL_UPGRADE: true
 
       - name: Run tests
         id: tests
         run: nox -s tests-${{ matrix.pyv }}
-        continue-on-error: ${{ matrix.os == 'macos-13' }}
+        continue-on-error: ${{ matrix.os == 'macos-latest' }}
         env:
           COVERAGE_XML: true
 
