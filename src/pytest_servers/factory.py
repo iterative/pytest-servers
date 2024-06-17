@@ -29,6 +29,11 @@ class TempUPathFactory:
             "_gcs_endpoint_url",
             requires_docker=True,
         ),
+        "gs": MockRemote(
+            "fake_gcs_server",
+            "_gcs_endpoint_url",
+            requires_docker=True,
+        ),
         "s3": MockRemote(
             "s3_server",
             "_s3_client_kwargs",
@@ -103,6 +108,7 @@ class TempUPathFactory:
             - s3
             - azure
             - gcs
+            - gs (alias for gcs)
 
         :param mock:
             Set to False to use real remotes
@@ -146,6 +152,7 @@ class TempUPathFactory:
                 msg = "missing connection string"
                 raise RemoteUnavailable(msg)
             return self.azure(connection_string=self._azure_connection_string, **kwargs)
+
         if fs == "gcs":
             return self.gcs(
                 endpoint_url=self._gcs_endpoint_url,
@@ -153,6 +160,12 @@ class TempUPathFactory:
                 **kwargs,
             )
 
+        if fs == "gs":
+            return self.gs(
+                endpoint_url=self._gcs_endpoint_url,
+                version_aware=version_aware,
+                **kwargs,
+            )
         raise ValueError(fs)
 
     def local(self) -> LocalPath:
@@ -237,8 +250,37 @@ class TempUPathFactory:
         path.mkdir()
         return path
 
+    def gs(
+        self,
+        endpoint_url: str | None = None,
+        *,
+        version_aware: bool = False,
+        **kwargs,
+    ) -> UPath:
+        return self._gs(
+            "gs",
+            endpoint_url=endpoint_url,
+            version_aware=version_aware,
+            **kwargs,
+        )
+
     def gcs(
         self,
+        endpoint_url: str | None = None,
+        *,
+        version_aware: bool = False,
+        **kwargs,
+    ) -> UPath:
+        return self._gs(
+            "gcs",
+            endpoint_url=endpoint_url,
+            version_aware=version_aware,
+            **kwargs,
+        )
+
+    def _gs(
+        self,
+        scheme: str,
         endpoint_url: str | None = None,
         *,
         version_aware: bool = False,
@@ -256,7 +298,7 @@ class TempUPathFactory:
         bucket_name = f"pytest-servers-{random_string()}"
 
         path = UPath(
-            f"gcs://{bucket_name}",
+            f"{scheme}://{bucket_name}",
             version_aware=version_aware,
             **client_kwargs,
             **kwargs,
