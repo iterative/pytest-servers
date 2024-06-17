@@ -28,11 +28,15 @@ implementations = [
         "gcs",
         upath.implementations.cloud.GCSPath,
     ),
+    pytest.param(
+        "gs",
+        upath.implementations.cloud.GCSPath,
+    ),
 ]
 
 
 with_versioning = [
-    param for param in implementations if param.values[0] in ("s3", "gcs")
+    param for param in implementations if param.values[0] in ("s3", "gcs", "gs")
 ]
 
 
@@ -43,7 +47,7 @@ with_versioning = [
 )
 class TestTmpUPathFactory:
     def test_init(self, tmp_upath_factory, fs, cls):
-        if fs == "gcs":
+        if fs in ("gcs", "gs"):
             pytest.skip("gcsfs does not support .exists() on a bucket")
         path = tmp_upath_factory.mktemp(fs)
         assert isinstance(path, cls)

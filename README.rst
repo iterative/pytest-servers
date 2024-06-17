@@ -109,7 +109,7 @@ The `tmp_upath` fixture can be used for parametrizing paths with pytest's indire
 
 .. code:: python
 
-   @pytest.mark.parametrize("tmp_upath", ["local", "s3", "gcs"], indirect=True)
+   @pytest.mark.parametrize("tmp_upath", ["local", "s3", "gcs", "gs"], indirect=True)
    def test_something(tmp_upath):
        pass
 

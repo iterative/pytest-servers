@@ -102,5 +102,7 @@ def tmp_upath(
         return tmp_upath_factory.mktemp("azure")
     if param == "gcs":
         return tmp_upath_factory.mktemp("gcs", version_aware=version_aware)
+    if param == "gs":
+        return tmp_upath_factory.mktemp("gs", version_aware=version_aware)
     msg = f"unknown {param=}"
     raise ValueError(msg)
