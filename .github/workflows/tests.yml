@@ -75,7 +75,7 @@ jobs:
 
       - name: Upload coverage report
         if: steps.tests.outcome  == 'success'
-        uses: codecov/codecov-action@v4.5.0
+        uses: codecov/codecov-action@v4.6.0
 
       - name: Build package
         run: nox -s build
