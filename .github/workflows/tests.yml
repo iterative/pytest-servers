@@ -45,6 +45,7 @@ jobs:
           nox --version
 
       - name: Lint code
+        if: matrix.pyv != 'pypy3.10'
         run: nox -s lint
 
       # https://github.com/iterative/pytest-servers/pull/122
