@@ -7,5 +7,5 @@ class LocalPath(type(pathlib.Path())):  # type: ignore[misc]
     fs = LocalFileSystem()
 
     @property
-    def path(self) -> str:  # noqa: N804
+    def path(self) -> str:
         return str(self)
