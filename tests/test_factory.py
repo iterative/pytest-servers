@@ -41,7 +41,7 @@ with_versioning = [
 
 
 @pytest.mark.parametrize(
-    "fs,cls",
+    ("fs", "cls"),
     implementations,
     ids=[param.values[0] for param in implementations],  # type: ignore[misc]
 )
@@ -69,7 +69,7 @@ class TestTmpUPathFactory:
 
 
 @pytest.mark.parametrize(
-    "fs,cls",
+    ("fs", "cls"),
     with_versioning,
     ids=[param.values[0] for param in with_versioning],  # type: ignore[misc]
 )
