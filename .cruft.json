@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/iterative/py-template",
-  "commit": "7861329bddca89436dd54883d302d92a4be34cb5",
+  "commit": "5533e6330b505e7037948207c1c6755597a82f84",
   "checkout": null,
   "context": {
     "cookiecutter": {
@@ -16,7 +16,8 @@
       "docs": "False",
       "short_description": "pytest-servers",
       "development_status": "Development Status :: 3 - Alpha",
-      "_template": "https://github.com/iterative/py-template"
+      "_template": "https://github.com/iterative/py-template",
+      "_commit": "5533e6330b505e7037948207c1c6755597a82f84"
     }
   },
   "directory": null,
