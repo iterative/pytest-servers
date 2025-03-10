@@ -64,8 +64,8 @@ class TempUPathFactory:
     ) -> TempUPathFactory:
         """Create a factory according to pytest configuration."""
         tmp_upath_factory = cls(*args, **kwargs)
-        tmp_upath_factory._local_path_factory = tmp_path_factory  # noqa: SLF001
-        tmp_upath_factory._request = request  # noqa: SLF001
+        tmp_upath_factory._local_path_factory = tmp_path_factory
+        tmp_upath_factory._request = request
 
         return tmp_upath_factory
 
