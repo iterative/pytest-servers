@@ -10,7 +10,6 @@ license = {text = "Apache-2.0"}
 authors = [{name = "Iterative", email = "support@dvc.org"}]
 classifiers = [
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -20,7 +19,7 @@ classifiers = [
   "Framework :: Pytest",
   "Intended Audience :: Developers"
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dynamic = ["version"]
 dependencies = [
   "pytest>=6.2",
@@ -59,7 +58,7 @@ tests = [
   "coverage[toml]>6",
   "pytest-sugar==1.0.0",
   "pytest-xdist==3.6.1",
-  "mypy==1.14.0",
+  "mypy==1.15.0",
   "types-requests"
 ]
 dev = [
