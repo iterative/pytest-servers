@@ -11,7 +11,7 @@ nox.options.sessions = "lint", "tests"
 
 
 @nox.session(
-    python=["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "pypy3.10"],
+    python=["3.9", "3.10", "3.11", "3.12", "3.13", "pypy3.10"],
 )
 def tests(session: nox.Session) -> None:
     session.install(".[dev]")
