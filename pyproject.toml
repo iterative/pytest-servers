@@ -57,7 +57,7 @@ tests = [
   "coverage-enable-subprocess",
   "coverage[toml]>6",
   "pytest-sugar==1.0.0",
-  "pytest-xdist==3.6.1",
+  "pytest-xdist==3.7.0",
   "mypy==1.15.0",
   "types-requests"
 ]
