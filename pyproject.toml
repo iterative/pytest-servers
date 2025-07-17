@@ -144,7 +144,8 @@ ignore = [
   "ANN002",  # missing type annotation
   "ANN101",  # missing type annotation
   "ANN204",  # missing return type annotation
-  "PT004"  # pytest-missing-fixture-name-underscore
+  "PT004",  # pytest-missing-fixture-name-underscore
+  "PLC0415",  # top level imports
 ]
 select = ["ALL"]
 
