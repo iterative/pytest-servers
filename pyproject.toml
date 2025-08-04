@@ -46,8 +46,6 @@ s3 = [
 ]
 azure = [
   "adlfs>=2022.02.22",
-  # https://github.com/Azure/Azurite/issues/2562 - remove when it is solved
-  "azure-storage-blob < 12.26.0",
   "pytest-servers[docker]"
 ]
 gcs = [
