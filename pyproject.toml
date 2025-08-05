@@ -59,7 +59,7 @@ tests = [
   "coverage[toml]>6",
   "pytest-sugar==1.0.0",
   "pytest-xdist==3.8.0",
-  "mypy==1.17.0",
+  "mypy==1.17.1",
   "types-requests"
 ]
 dev = [
