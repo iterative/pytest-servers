@@ -50,7 +50,7 @@ def fake_gcs_server(
                 f"-public-host localhost:{port} -external-url {url} "
             )
             container = docker_client.containers.run(
-                "fsouza/fake-gcs-server:1.52.2",  # renovate
+                "fsouza/fake-gcs-server:1.52.3",  # renovate
                 name=container_name,
                 command=command,
                 stdout=True,
