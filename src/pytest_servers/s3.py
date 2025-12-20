@@ -17,7 +17,13 @@ class MockedS3Server:
 
     @property
     def endpoint_url(self) -> str:
-        return f"http://{self.ip_address}:{self.port}"
+        # `0.0.0.0`/`::` are wildcard bind addresses: valid for listening, but not a
+        # stable client destination. When users bind moto to all interfaces (common
+        # on Linux CI), advertise localhost so the test process can connect.
+        host = self.ip_address
+        if host in {"0.0.0.0", "::", "::0"}:  # noqa: S104
+            host = "127.0.0.1"
+        return f"http://{host}:{self.port}"
 
     @property
     def port(self) -> int:
