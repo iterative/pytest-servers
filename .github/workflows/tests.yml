@@ -23,9 +23,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        pyv: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        pyv: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         include:
-          - {os: ubuntu-latest, pyv: "pypy3.10"}
+          - {os: ubuntu-latest, pyv: "pypy3.11"}
 
     steps:
       - name: Check out the repository
@@ -45,7 +45,7 @@ jobs:
           nox --version
 
       - name: Lint code
-        if: matrix.pyv != 'pypy3.10'
+        if: ${{ !startsWith(matrix.pyv, 'pypy') }}
         run: nox -s lint
 
       # https://github.com/iterative/pytest-servers/pull/122

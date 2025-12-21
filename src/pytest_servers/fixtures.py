@@ -47,7 +47,7 @@ def tmp_local_path(
 ) -> UPath:
     """Return a temporary path."""
     ret = tmp_upath_factory.mktemp()
-    monkeypatch.chdir(ret)
+    monkeypatch.chdir(str(ret))
     return ret
 
 
