@@ -76,6 +76,9 @@ jobs:
       - name: Upload coverage report
         if: steps.tests.outcome  == 'success'
         uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
 
       - name: Build package
         run: nox -s build
