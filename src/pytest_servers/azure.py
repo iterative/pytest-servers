@@ -43,7 +43,7 @@ def azurite(
         except NotFound:
             container = docker_client.containers.run(
                 "mcr.microsoft.com/azure-storage/azurite:3.35.0",  # renovate
-                command="azurite-blob --loose --blobHost 0.0.0.0",
+                command="azurite-blob --loose --blobHost 0.0.0.0 --skipApiVersionCheck",
                 name=container_name,
                 stdout=True,
                 stderr=True,
