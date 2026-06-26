@@ -1,0 +1,14 @@
+# https://docs.codecov.com/docs/codecovyml-reference
+coverage:
+  status:
+    project:
+      default:
+        target: auto      # compare against the base commit (main)
+        threshold: 0%      # fail if total coverage drops below the base
+    patch:
+      default:
+        informational: true  # report diff coverage without blocking
+
+comment:
+  layout: "reach, diff, flags, files"
+  require_changes: false
