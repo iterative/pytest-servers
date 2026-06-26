@@ -15,7 +15,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Framework :: Pytest",
   "Intended Audience :: Developers"
 ]
@@ -33,8 +33,8 @@ dependencies = [
 pytest-servers = "pytest_servers.fixtures"
 
 [project.urls]
-Issues = "https://github.com/iterative/pytest-servers/issues"
-Source = "https://github.com/iterative/pytest-servers"
+Issues = "https://github.com/datachain-ai/pytest-servers/issues"
+Source = "https://github.com/datachain-ai/pytest-servers"
 
 [project.optional-dependencies]
 docker = ["docker>6"]
