@@ -200,7 +200,7 @@ class TempUPathFactory:
             from botocore.session import Session
 
             session = Session()
-            client = session.create_client("s3", **client_kwargs)
+            client = session.create_client("s3", **(client_kwargs or {}))
             client.create_bucket(
                 Bucket=bucket_name,
                 ACL="public-read",
