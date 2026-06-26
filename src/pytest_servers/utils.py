@@ -3,7 +3,8 @@ import random
 import socket
 import string
 import time
-from typing import TYPE_CHECKING, Callable, NamedTuple, TypeVar
+from collections.abc import Callable
+from typing import TYPE_CHECKING, NamedTuple, TypeVar
 
 import pytest
 

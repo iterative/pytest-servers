@@ -118,7 +118,7 @@ skip = "CODE_OF_CONDUCT.rst"
 
 [tool.ruff]
 line-length = 88
-target-version = "py38"
+target-version = "py310"
 output-format = "full"
 show-fixes = true
 
@@ -127,7 +127,8 @@ ignore = [
   "S101",  # assert
   "PLR2004",  # magic-value-comparison
   "PLW2901",  # redefined-loop-name
-  "ISC001",  # single-line-implicit-string-concatenation
+  "ISC001",  # single-line-implicit-string-concatenation (conflicts with formatter)
+  "COM812",  # missing-trailing-comma (conflicts with formatter)
   "SIM105",  # suppressible-exception
   "SIM108",  # if-else-block-instead-of-if-exp
   "D203",  # one blank line before class
