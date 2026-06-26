@@ -82,3 +82,16 @@ jobs:
 
       - name: Build package
         run: nox -s build
+
+  ci-success:
+    name: CI success
+    runs-on: ubuntu-latest
+    needs: [tests]
+    if: always()
+    steps:
+      - name: Verify all test jobs passed
+        if: needs.tests.result != 'success'
+        run: |
+          echo "Required test jobs did not all succeed: ${{ needs.tests.result }}"
+          exit 1
+      - run: echo "All required test jobs passed."
