@@ -1,8 +1,9 @@
 {
   "extends": ["group:all", ":dependencyDashboard"],
-  "enabledManagers": ["regex"],
-  "regexManagers": [
+  "enabledManagers": ["custom.regex"],
+  "customManagers": [
     {
+      "customType": "regex",
       "fileMatch": [
         "^src/pytest_servers/gcs.py$",
         "^src/pytest_servers/azure.py$"
