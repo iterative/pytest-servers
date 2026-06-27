@@ -3,7 +3,7 @@ pytest servers
 
 |PyPI| |Status| |Python Version| |License|
 
-|Tests| |Codecov| |pre-commit| |Black|
+|Tests| |Codecov| |pre-commit| |Ruff|
 
 .. |PyPI| image:: https://img.shields.io/pypi/v/pytest-servers.svg
    :target: https://pypi.org/project/pytest-servers/
@@ -17,18 +17,18 @@ pytest servers
 .. |License| image:: https://img.shields.io/pypi/l/pytest-servers
    :target: https://opensource.org/licenses/Apache-2.0
    :alt: License
-.. |Tests| image:: https://github.com/iterative/pytest-servers/workflows/Tests/badge.svg
-   :target: https://github.com/iterative/pytest-servers/actions?workflow=Tests
+.. |Tests| image:: https://github.com/datachain-ai/pytest-servers/actions/workflows/tests.yml/badge.svg
+   :target: https://github.com/datachain-ai/pytest-servers/actions/workflows/tests.yml
    :alt: Tests
-.. |Codecov| image:: https://codecov.io/gh/iterative/pytest-servers/branch/main/graph/badge.svg
-   :target: https://app.codecov.io/gh/iterative/pytest-servers
+.. |Codecov| image:: https://codecov.io/gh/datachain-ai/pytest-servers/branch/main/graph/badge.svg
+   :target: https://app.codecov.io/gh/datachain-ai/pytest-servers
    :alt: Codecov
 .. |pre-commit| image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
    :target: https://github.com/pre-commit/pre-commit
    :alt: pre-commit
-.. |Black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/psf/black
-   :alt: Black
+.. |Ruff| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+   :target: https://github.com/astral-sh/ruff
+   :alt: Ruff
 
 
 Features
@@ -38,7 +38,7 @@ Create temporary directories on the following filesystems:
 
 - Local fs
 - In-memory fs
-- S3, both using mock S3 remotes (https://github.com/spulec/moto) and real S3 remotes
+- S3, both using mock S3 remotes (https://github.com/getmoto/moto) and real S3 remotes
 - Azure, both using mock Azure remotes (https://github.com/Azure/Azurite) via docker and using real Azure Storage remotes
 - Google Cloud Storage, both using mock GCS remote (https://github.com/fsouza/fake-gcs-server) via docker and using real Google Storage Remotes
 
@@ -78,7 +78,7 @@ To install all extras:
 Usage
 ------------
 
-The main fixture provided by `pytest-servers` provides is `tmp_upath_factory`, which can be used
+The main fixture provided by `pytest-servers` is `tmp_upath_factory`, which can be used
 to generate temporary paths on different (mocked) filesystems:
 
 .. code:: python
@@ -115,7 +115,7 @@ The `tmp_upath` fixture can be used for parametrizing paths with pytest's indire
 
 In order to use real remotes instead of mocked ones, use `tmp_upath_factory` with the following methods
 
-- ``tmp_upath_factory.s3(region_name, client_kwargs)`` where client_kwargs are passed to the underlying S3FileSystem/boto client
+- ``tmp_upath_factory.s3(client_kwargs)`` where client_kwargs are passed to the underlying S3FileSystem/boto client
 - ``tmp_upath_factory.gcs(endpoint_url)``
 - ``tmp_upath_factory.azure(connection_string)``
 
@@ -154,7 +154,7 @@ please `file an issue`_ along with a detailed description.
 
 .. _Apache 2.0 license: https://opensource.org/licenses/Apache-2.0
 .. _PyPI: https://pypi.org/
-.. _file an issue: https://github.com/iterative/pytest-servers/issues
+.. _file an issue: https://github.com/datachain-ai/pytest-servers/issues
 .. _pip: https://pip.pypa.io/
 .. github-only
 .. _Contributor Guide: CONTRIBUTING.rst
